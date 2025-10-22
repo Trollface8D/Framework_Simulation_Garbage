@@ -2,7 +2,7 @@
 this is tool for ewvaluating extracted causal structure
 # folder structure
 - source
-- output
+- lib/output
 - gemini.py
 - .env
 - visualize
