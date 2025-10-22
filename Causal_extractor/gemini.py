@@ -3,8 +3,6 @@ from google.genai.types import GenerateContentConfig, GoogleSearch, Tool, Part, 
 from pathlib import Path
 import io
 
-root_dir = Path(__file__).resolve().parent
-
 class GeminiClient:
     def __init__(
         self,
