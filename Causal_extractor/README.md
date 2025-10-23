@@ -23,3 +23,6 @@ this is tool for ewvaluating extracted causal structure
 1. show raw source
 2. list of pair of each raw source with output, buttons
 3. OnClick auto save labeled output -> csv
+
+## run command
+streamlit run causal_extractor/visualize/visualize.py
