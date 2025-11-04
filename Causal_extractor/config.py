@@ -19,4 +19,4 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "False").lower() in ('true', '1', 't')
 # Example for other file: Import the configured variables from your config.py file
 # from config import API_KEY
 from google.genai.types import GenerateContentConfig, ThinkingConfig
-out_as_json = GenerateContentConfig(response_mime_type="json", thinking_config=ThinkingConfig(thinking_budget=2048))
+out_as_json = GenerateContentConfig(response_mime_type="application/json", thinking_config=ThinkingConfig(thinking_budget=2048))

@@ -91,11 +91,11 @@ if submitted:
         with st.spinner("🧠 Gemini is thinking..."):
             try:
                 # Dynamically find the placeholder key (e.g., 'name' from '{name}')
-                placeholder = prompt_template.split('{')[1].split('}')[0]
-                final_prompt = prompt_template.format(**{placeholder: user_input})
+                # placeholder = prompt_template.split('{')[1].split('}')[0]
+                final_prompt = prompt_template.format(user_input)
 
                 # --- Call Gemini API ---
-                response = model.generate(final_prompt, out_as_json)
+                text, response = model.generate(prompt=final_prompt, generation_config=out_as_json, model_name="gemini-2.5-pro", google_search=False)
                 
                 # Clean the response to extract only the JSON part
                 cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "")

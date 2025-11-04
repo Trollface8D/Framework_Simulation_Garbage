@@ -36,11 +36,11 @@ class GeminiClient:
             generation_config: GenerateContentConfig,
             model_name: str = "gemini-2.5-flash-preview-04-17",
             pdf_bytes: list[io.BytesIO] | None = None,
-        image_bytes: list[io.BytesIO] | None = None,
-        image_mime_type: str = "image/jpeg",
-        google_search=True,
+            image_bytes: list[io.BytesIO] | None = None,
+            image_mime_type: str = "application/json",
+            google_search=True,
             verbose=0,
-        uid=None,
+            uid=None,
                     ) -> tuple | None:
         if not isinstance(generation_config, GenerateContentConfig):
             print("generation_config must be an instance of GenerationConfig")
