@@ -1,14 +1,18 @@
 import streamlit as st
 import pandas as pd
 import json
-import os 
-import re # Import re for regex operations used in highlighting
+import os
+import re
 
 # Define the base directories
 BASE_DIR = r"Causal_extractor\lib\output"
-REFERENCE_DIR = r"Causal_extractor\lib\reference" # New directory for reference PDFs
+REFERENCE_DIR = r"Causal_extractor\lib\reference"
 
-# Define column names based on your new structure
+# --- NEW: Define the score storage path (inside the base directory) ---
+SCORE_FILE_NAME = "validation_scores.json"
+SCORE_FILE_PATH = os.path.join(BASE_DIR, SCORE_FILE_NAME)
+
+# Define column names based on your JSON structure (Main Data)
 COLUMNS = ["pattern", "causal type", "causal", "note", "Named entity/Object in causal", "original reference"]
 # Rename columns for cleaner display and charting
 DISPLAY_COLUMNS = {
@@ -17,16 +21,43 @@ DISPLAY_COLUMNS = {
     "causal": "Causal Statement",
     "note": "Note",
     "Named entity/Object in causal": "Named Entity/Object",
-    "original reference": "Original Reference" # This column contains the full source text snippet
+    "original reference": "Original Reference"
 }
+REF_COL_NAME = DISPLAY_COLUMNS['original reference']
 
-# Function to load and prepare the data from the file path
-@st.cache_data
-def load_data(file_path):
-    """Loads data from a local JSON file specified by path and converts it to a Pandas DataFrame."""
+# ------------------------------------------------------------------
+# 0. Score Management Functions (NEW)
+# ------------------------------------------------------------------
+
+def load_scores():
+    """Loads the validation scores from a JSON file."""
+    if not os.path.exists(SCORE_FILE_PATH):
+        return {}
+    try:
+        with open(SCORE_FILE_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.error(f"Error loading scores: {e}")
+        return {}
+
+def save_scores(scores):
+    """Saves the current validation scores to a JSON file."""
+    try:
+        os.makedirs(os.path.dirname(SCORE_FILE_PATH), exist_ok=True)
+        with open(SCORE_FILE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(scores, f, indent=4)
+        st.toast("✅ Scores saved successfully!", icon='💾')
+    except Exception as e:
+        st.error(f"Error saving scores: {e}")
+
+# ------------------------------------------------------------------
+# 1. JSON Data Loading (Main Data) - MODIFIED to include scores
+# ------------------------------------------------------------------
+@st.cache_data(hash_funcs={dict: lambda x: json.dumps(x, sort_keys=True)})
+def load_json_data(file_path, selected_file_name):
     if not os.path.exists(file_path):
-        st.error(f"File not found at: {file_path}") 
-        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()])
+        st.error(f"File not found at: {file_path}")
+        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -34,158 +65,140 @@ def load_data(file_path):
         
         if isinstance(raw_data, list) and all(isinstance(item, list) for item in raw_data):
             if raw_data and len(raw_data[0]) != len(COLUMNS):
-                 st.error(f"Data structure mismatch in {file_path}. Expected {len(COLUMNS)} columns, but found {len(raw_data[0])} in the first row.")
-                 return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()])
-                 
+                st.error(f"Column mismatch in file {file_path}.")
+                return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
+            
             df = pd.DataFrame(raw_data, columns=COLUMNS)
             df = df.rename(columns=DISPLAY_COLUMNS)
+
+            df.insert(0, 'Unique_ID', df.index)
+            df['Score'] = ""
+
+            all_scores = load_scores()
+            file_scores = all_scores.get(selected_file_name, {})
+            
+            def get_score(row):
+                score_key = str(row['Unique_ID'])
+                return str(file_scores.get(score_key, "")) 
+
+            df['Score'] = df.apply(get_score, axis=1)
+            
             return df
         else:
-            st.error("JSON content is not in the expected list-of-lists format (must be a list of lists).")
-            return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()])
+            st.error("JSON must be list-of-lists format.")
+            return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
             
-    except json.JSONDecodeError:
-        st.error(f"Error decoding JSON from file: {file_path}. Check file content for errors.")
-        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()])
     except Exception as e:
-        st.error(f"An unexpected error occurred while reading the file: {e}")
-        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()])
+        st.error(f"Error reading: {e}")
+        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
 
+# ------------------------------------------------------------------
+# 2. CSV Reference Input Loading
+# ------------------------------------------------------------------
+@st.cache_data
+def load_csv_reference(file_path):
+    if not os.path.exists(file_path):
+        return pd.DataFrame(columns=['input'])
+    try:
+        df = pd.read_csv(file_path)
+        if "input" in df.columns:
+            return df[["input"]].drop_duplicates().astype(str).reset_index(drop=True)
+        else:
+            st.sidebar.error("Missing column 'input'")
+            return pd.DataFrame(columns=['input'])
+    except Exception as e:
+        st.sidebar.error(f"CSV error: {e}")
+        return pd.DataFrame(columns=['input'])
 
-def highlight_references(row, selected_reference_file):
-    """
-    Applies a CSS style to highlight rows where the 'Original Reference'
-    column contains text related to the selected PDF file name, using normalized strings.
-    """
+# ------------------------------------------------------------------
+# Highlighting
+# ------------------------------------------------------------------
+
+def highlight_references(row, selected_reference_input):
     style = [''] * len(row)
-    ref_col_name = DISPLAY_COLUMNS['original reference']
-
-    if selected_reference_file != 'None':
-        # 1. Normalize the selected PDF file name
-        normalized_pdf_name = selected_reference_file.lower().replace('.pdf', '').strip()
-        
-        # 2. Normalize the reference cell value
-        ref_cell_value = str(row[ref_col_name]).lower()
-        
-        # Simple check: if the PDF name (or part of it) is in the source snippet text.
-        # This is a heuristic that works well for direct comparisons.
-        if normalized_pdf_name in ref_cell_value or ref_cell_value in normalized_pdf_name:
-            style = ['background-color: #ffd700; color: #333333'] * len(row) 
-            
+    if selected_reference_input and selected_reference_input != 'None':
+        original_reference_text = str(row[REF_COL_NAME]).strip()
+        if original_reference_text == selected_reference_input.strip():
+            style = ['background-color: #ffd700; color: #333333'] * len(row)
     return style
 
-def find_best_reference_match(original_reference_text, reference_files):
-    """
-    Attempts to find the most probable PDF file name from the available files
-    based on the text snippet in the 'Original Reference' column.
-    """
-    best_match = "N/A (No strong PDF match found)"
-    max_score = 0
-    text_to_search = original_reference_text.lower()
-    
-    # Iterate through all available PDF files
-    for pdf_name in reference_files:
-        normalized_pdf_name = pdf_name.lower().replace('.pdf', '').strip()
-        
-        # We use a simple scoring heuristic: count how many words from the PDF name
-        # appear in the reference text.
-        score = 0
-        pdf_name_parts = [p.strip() for p in normalized_pdf_name.split('_') if p.strip()]
-        
-        for part in pdf_name_parts:
-            # Use regex for whole-word counting
-            score += len(re.findall(r'\b' + re.escape(part) + r'\b', text_to_search))
-            
-        if score > max_score:
-            max_score = score
-            best_match = pdf_name
-            
-    return best_match
-
-
-# --- Streamlit App Layout ---
+# ------------------------------------------------------------------
 
 st.set_page_config(
     page_title="Causal Data Visualization Dashboard",
     layout="wide"
 )
 
-st.title("📄 Causal Extractor Data Analyzer")
-st.markdown(f"Files are loaded from the local directory: `{BASE_DIR}`")
+st.title("📄 Causal Extractor Data Analyzer (JSON + CSV Reference)")
+st.markdown(f"Main data loaded from: `{BASE_DIR}`")
 
 # ----------------------------------------------------
-## File Selection Logic (Main Data)
+# Sidebar CSV Selection
+# ----------------------------------------------------
+
+st.sidebar.header("🔍 CSV Input Comparison") 
+csv_files = []
+if os.path.isdir(REFERENCE_DIR):
+    try:
+        csv_files = [f for f in os.listdir(REFERENCE_DIR) if f.endswith('.csv')]
+    except OSError as e:
+        st.sidebar.error(f"Permission: {e}")
+
+selected_csv_file_name = None
+df_reference_input = pd.DataFrame(columns=['input'])
+
+if csv_files:
+    default = csv_files.index("generation_log.csv") if "generation_log.csv" in csv_files else 0
+    selected_csv_file_name = st.sidebar.selectbox(
+        "Select CSV",
+        options=csv_files,
+        index=default,
+    )
+    
+    if selected_csv_file_name:
+        csv_ref_path = os.path.join(REFERENCE_DIR, selected_csv_file_name)
+        df_reference_input = load_csv_reference(csv_ref_path)
+    reference_inputs = df_reference_input['input'].tolist()
+else:
+    st.sidebar.warning("No CSV found.")
+    reference_inputs = []
+
+selected_reference_input = 'None'
+
+if reference_inputs:
+    display_options = ['None'] + reference_inputs
+    selected_reference_input = st.sidebar.selectbox(
+        "Match Original Reference:",
+        display_options,
+        index=0
+    )
+
+# ----------------------------------------------------
+# JSON Selection
 # ----------------------------------------------------
 
 json_files = []
 if os.path.isdir(BASE_DIR):
-    try:
-        json_files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json')]
-    except OSError as e:
-        st.error(f"Permission error or cannot list directory contents: {e}")
-        
+    json_files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json') and f != SCORE_FILE_NAME]
+
 selected_file_name = None
-df = pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()]) 
+df = pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"]) 
 
 if json_files:
-    selected_file_name = st.selectbox(
-        "Select a JSON file to analyze:",
-        options=json_files,
-        index=0
-    )
+    selected_file_name = st.selectbox("Select JSON", options=json_files)
     
     if selected_file_name:
         full_path = os.path.join(BASE_DIR, selected_file_name)
-        df = load_data(full_path)
-        
-        if not df.empty:
-            st.success(f"Successfully loaded and processed **{len(df)}** records from `{selected_file_name}`.")
-
+        df = load_json_data(full_path, selected_file_name)
 else:
-    if os.path.isdir(BASE_DIR):
-        st.info(f"No JSON files found in the directory: `{BASE_DIR}`.")
-    else:
-        st.error(f"The specified directory does not exist: `{BASE_DIR}`. Please ensure the path is correct.")
-        
+    st.info("No JSON files found.")
 
 # ----------------------------------------------------
-## Reference File Selection (Sidebar)
+# Main Data
 # ----------------------------------------------------
 
-selected_reference = 'None' # Default selection
-reference_files = [] # Initialize reference_files list here
-if os.path.isdir(REFERENCE_DIR):
-    st.sidebar.header("🔍 Reference Comparison")
-    st.sidebar.markdown("Highlight rows that match an existing PDF file.")
+if not df.empty:
     
-    try:
-        # Find all PDF files in the reference directory
-        reference_files = [f for f in os.listdir(REFERENCE_DIR) if f.lower().endswith('.pdf')]
-    except OSError as e:
-        st.sidebar.error(f"Permission error for reference directory: {e}")
-
-    if reference_files:
-        selected_reference = st.sidebar.selectbox(
-            "Select a reference PDF to highlight:",
-            options=['None'] + reference_files,
-            index=0
-        )
-    else:
-        st.sidebar.info(f"No PDF files found in: `{REFERENCE_DIR}`")
-else:
-    st.sidebar.warning(f"Reference directory not found: `{REFERENCE_DIR}`")
-
-
-# Handle case where DataFrame is empty after attempted load
-if df.empty:
-    pass
-else:
-    # ----------------------------------------------------
-    ## Data Filtering
-    # ----------------------------------------------------
-    st.header("Interactive Data Filter")
-
-    # The columns to use for filtering and charting are the DISPLAY_COLUMNS values (renamed columns)
     pattern_col = DISPLAY_COLUMNS['pattern']
     causal_type_col = DISPLAY_COLUMNS['causal type']
 
@@ -193,153 +206,137 @@ else:
 
     with col1:
         selected_patterns = st.multiselect(
-            f"Filter by {pattern_col} (e.g., F, C, A):",
-            options=df[pattern_col].unique(),
+            f"Filter by {pattern_col}:",
+            df[pattern_col].unique(),
             default=df[pattern_col].unique()
         )
 
     with col2:
         selected_causal_types = st.multiselect(
             f"Filter by {causal_type_col}:",
-            options=df[causal_type_col].unique(),
+            df[causal_type_col].unique(),
             default=df[causal_type_col].unique()
         )
 
-    # Apply filters
     df_filtered = df[
         df[pattern_col].isin(selected_patterns) & 
         df[causal_type_col].isin(selected_causal_types)
     ].reset_index(drop=True)
-
-    st.subheader(f"Filtered Data ({len(df_filtered)} rows)")
     
-    # Apply highlighting if a reference is selected
-    if selected_reference and selected_reference != 'None':
-        st.markdown(f"**Rows referencing `{selected_reference}` are highlighted in gold.**")
-        
-        # Apply the styling function to the filtered DataFrame
-        styled_df = df_filtered.style.apply(highlight_references, 
-                                             axis=1, 
-                                             selected_reference_file=selected_reference)
+    st.subheader(f"Filtered Data ({len(df_filtered)} rows)")
+
+    if selected_reference_input != 'None':
+        styled_df = df_filtered.style.apply(
+            lambda row: highlight_references(row, selected_reference_input),
+            axis=1
+        )
         st.dataframe(styled_df, use_container_width=True)
     else:
-        # Display the unstyled DataFrame if no reference is selected
-        st.dataframe(df_filtered, use_container_width=True)
+        st.dataframe(df_filtered, use_container_width=True, hide_index=True)
 
-    # ----------------------------------------------------
-    ## Data Distribution Charts
-    # ----------------------------------------------------
-    st.header("Data Distribution")
-
-    col3, col4 = st.columns(2)
-
-    # Visualization 1: Count by Pattern
-    with col3:
-        st.subheader(f"Count by {pattern_col}")
-        pattern_counts = df[pattern_col].value_counts().reset_index()
-        pattern_counts.columns = [pattern_col, 'Count']
-        st.bar_chart(pattern_counts.set_index(pattern_col))
-        st.caption("Common patterns: F=Fact, C=Causal Relation, A=Action Item")
-
-    # Visualization 2: Count by Causal Type
-    with col4:
-        st.subheader(f"Count by {causal_type_col}")
-        type_counts = df[causal_type_col].value_counts().reset_index()
-        type_counts.columns = [causal_type_col, 'Count']
-        st.bar_chart(type_counts.set_index(causal_type_col))
-
-    # ----------------------------------------------------
-    ## Debugging/Raw Data View
-    # ----------------------------------------------------
     st.markdown("---")
-    st.subheader("Raw Data Preview")
-    st.dataframe(df.head())
-    
-    # ----------------------------------------------------
-    ## Labeling and Text Comparison
-    # ----------------------------------------------------
-    st.header("Labeling and Text Comparison")
-    st.markdown("""
-        Select a row below using the checkbox to see the **Original Reference** text snippet and the most probable source PDF file.
-    """)
 
-    # Select only the columns relevant for context and referencing
+    # ----------------------------------------------------
+    # Detail View
+    # ----------------------------------------------------
+    st.header("Causal Statement Detail View")
+
     cols_for_selection = [
+        'Unique_ID',
         DISPLAY_COLUMNS['pattern'],
         DISPLAY_COLUMNS['causal type'],
         DISPLAY_COLUMNS['causal'],
-        # FIX APPLIED HERE: Changed from 'Original Reference' to 'original reference'
-        DISPLAY_COLUMNS['original reference'] 
+        'Score',
+        DISPLAY_COLUMNS['original reference']
     ]
-    df_selection_view = df[cols_for_selection].copy()
     
-    # Add a temporary index column to track the original row index
-    df_selection_view['__index'] = df_selection_view.index
+    df_selection_view = df_filtered[cols_for_selection].copy()
+    df_selection_view.insert(0, 'Select', False)
     
-    # FIX: Initialize the 'Select' column *before* passing to st.data_editor
-    df_selection_view['Select'] = False 
-    
-    # Use st.data_editor to allow row selection via checkbox
-    edited_df = st.data_editor(
-        df_selection_view,
-        hide_index=True,
-        use_container_width=True,
+    edited_df_view = st.data_editor(
+        df_selection_view.drop(columns=['Unique_ID']), 
+        use_container_width=True, 
         column_config={
-            # Add a selection column
-            "Select": st.column_config.CheckboxColumn("Select", default=False),
-            # Hide the temporary index
-            "__index": st.column_config.Column(disabled=True, width="min")
+            "Select": st.column_config.CheckboxColumn("Select"),
+            "Score": st.column_config.SelectboxColumn(
+                "Score",
+                options=["", "1", "2", "3", "4", "5"]
+            ),
         },
+        key="detail_view_editor"
     )
 
-    # Filter to find the indices of the selected rows
-    selected_indices_in_editor = edited_df[edited_df['Select'] == True].index
+    edited_df_with_id = pd.merge(
+        edited_df_view.reset_index(names=['original_index']),
+        df_filtered[['Unique_ID']].reset_index(names=['original_index']),
+        on='original_index',
+    )
     
-    if len(selected_indices_in_editor) == 1:
-        selected_row_data = edited_df.loc[selected_indices_in_editor[0]]
-        
-        causal_statement = selected_row_data[DISPLAY_COLUMNS['causal']]
-        original_reference_text = selected_row_data[DISPLAY_COLUMNS['original reference']] 
-        
-        # --- NEW LOGIC: Match Reference Text to PDF File ---
-        matched_pdf = find_best_reference_match(original_reference_text, reference_files)
-        
-        st.subheader("Selected Item Details")
-        
-        st.markdown("### Source Comparison View")
-        
-        # Display the extracted causal statement
-        st.markdown(f"**Extracted Causal Statement (from JSON):** *{causal_statement}*")
-        st.markdown("---")
-        
-        st.markdown(f"**Most Probable Source File:** **`{matched_pdf}`**")
-        st.markdown("---")
-        
-        # Display the original reference text with the causal statement highlighted
-        highlighted_reference_text = original_reference_text
-        match = re.search(re.escape(causal_statement), original_reference_text, re.IGNORECASE)
-        
-        if match:
-            match_text = match.group(0)
-            highlight_style = 'background-color: yellow; font-weight: bold; padding: 2px; border-radius: 4px;'
-            
-            highlighted_reference_text = re.sub(
-                re.escape(match_text), 
-                f"<span style='{highlight_style}'>{match_text}</span>", 
-                original_reference_text, 
-                1, 
-                flags=re.IGNORECASE
-            )
-            st.markdown(f"**Original Source Text Snippet (with Causal Statement highlighted):** {highlighted_reference_text}", unsafe_allow_html=True)
-        else:
-            st.markdown(f"**Original Source Text Snippet:** {original_reference_text}")
-        
-        st.warning("""
-            **Verification Note:** The file above is the system's best guess based on keywords. 
-            The highlighted text shows exactly where the **Causal Statement** was sourced from within the snippet.
-        """)
+    selected_rows = edited_df_with_id[edited_df_with_id['Select'] == True]
+    
+    if len(selected_rows) >= 1:
+        # ---------------------------
+        # INLINE SCORE EDIT SECTION
+        # ---------------------------
+        if len(selected_rows) == 1:
+            selected_row_data = selected_rows.iloc[0]
+            selected_unique_id = str(selected_row_data['Unique_ID'])
 
-    elif len(selected_indices_in_editor) > 1:
-        st.warning("Please select only **one** row for detailed text comparison.")
+            st.write("### ✍️ Edit Score Inline")
+            inline_value = st.radio(
+                "Score for this statement:",
+                options=["1", "2", "3", "4", "5"],
+                index=["1", "2", "3", "4", "5"].index(selected_row_data['Score']) if selected_row_data['Score'] in ["1", "2", "3", "4", "5"] else 0,
+                horizontal=True,
+                key=f"inline_{selected_unique_id}"
+            )
+
+            if st.button("💾 Save Inline Score", type="primary"):
+                all_scores = load_scores()
+                file_scores = all_scores.get(selected_file_name, {})
+                file_scores[selected_unique_id] = inline_value.strip()
+                all_scores[selected_file_name] = file_scores
+                save_scores(all_scores)
+                st.cache_data.clear()
+                st.rerun()
+
+            st.markdown("---")
+
+            # ---------------------------
+            # Comparison Display
+            # ---------------------------
+            causal_statement = selected_row_data[DISPLAY_COLUMNS['causal']]
+            original_reference_text = str(selected_row_data[DISPLAY_COLUMNS['original reference']]).strip()
+            
+            st.subheader("Selected Item Details and Comparison")
+            st.markdown(f"**Extracted:** *{causal_statement}*")
+            st.markdown(f"**Current Saved Score:** `{selected_row_data['Score'] or 'None'}`")
+            st.markdown("---")
+            
+            st.markdown("### Source Text Comparison")
+
+            if df_reference_input is not None and len(df_reference_input) > 0:
+                raw_text = original_reference_text
+                
+                highlight_style = 'background-color: #981ca3; font-weight: bold; color: white; padding: 2px; border-radius: 2px;' 
+                best_csv_match = None
+                
+                for csv_input in df_reference_input['input'].tolist():
+                    if raw_text.lower() in csv_input.lower():
+                        best_csv_match = csv_input
+                        break
+                
+                if best_csv_match:
+                    styled_segment = f"<span style='{highlight_style}'>{raw_text}</span>"
+                    final = best_csv_match.replace(raw_text, styled_segment, 1)
+                    
+                    st.markdown("**CSV Input (Source Document)**")
+                    st.markdown(final, unsafe_allow_html=True)
+                else:
+                    st.warning("Original snippet not found inside CSV input text.")
+                    st.markdown(raw_text)
+            else:
+                st.warning("No CSV Loaded.")
+
     else:
-        st.info("Select a row in the table above to see the comparison details.")
+        st.info("Select a row above to view details.")
