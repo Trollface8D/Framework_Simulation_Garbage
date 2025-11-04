@@ -1,0 +1,282 @@
+[
+    [
+        "F",
+        "SB",
+        "Bangkok and university agree on truck schedule",
+        "",
+        "Bangkok, university",
+        "The schedule of the truck seems to be agreed on both Bangkok and university ends."
+    ],
+    [
+        "F",
+        "SB",
+        "Trucks collect trash often",
+        "!",
+        "Trucks",
+        "And they come to collect quite often."
+    ],
+    [
+        "C",
+        "SB",
+        "Event with unusual trash amount -> university staff call for trash trucks",
+        "",
+        "university staff, trash trucks, event",
+        "university staff will call for trash trucks only when there is some event that causes an unusual amount of trash."
+    ],
+    [
+        "C",
+        "SB",
+        "Limited space in university -> garbage buffer is created",
+        "",
+        "university, garbage buffer",
+        "due to limited space in our university, the garbage buffer is created"
+    ],
+    [
+        "A",
+        "SB",
+        "Garbage buffer stores trash to prevent collection points from overflowing",
+        "",
+        "garbage buffer, collection points",
+        "the garbage buffer is created to store trash preventing normal collection points from overflowing"
+    ],
+    [
+        "C",
+        "ES",
+        "No proper design -> garbage buffer is close to human traffic",
+        "",
+        "garbage buffer",
+        "it is created without proper design making it close to human traffic."
+    ],
+    [
+        "C",
+        "SB",
+        "Increase in number of students -> challenges emerge",
+        "!",
+        "students",
+        "And these challenges emerge as universities accept more students."
+    ],
+    [
+        "C",
+        "SB",
+        "Increase in number of students -> increases trash producers",
+        "",
+        "students",
+        "Increase in the number of students also increases the number of trash producers"
+    ],
+    [
+        "F",
+        "OT",
+        "Economic feasibility is the most important factor for project success",
+        "",
+        "Economic feasibility",
+        "the most important factor that makes the project in general fail is economic feasibility."
+    ],
+    [
+        "C",
+        "OT",
+        "New policy gains consume more monthly cost for insignificant improvement -> Project fails",
+        "%",
+        "policy",
+        "Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy."
+    ],
+    [
+        "SP",
+        "OT",
+        "Include financial factor and staff sentiment in the reward function",
+        "",
+        "reward function",
+        "We may need to include financial factor and staff sentiment to the reward function"
+    ],
+    [
+        "A",
+        "SB",
+        "During student events, set up 3 types of separation bins",
+        "",
+        "separation bins",
+        "\u0e15\u0e2d\u0e19 event \u0e2b\u0e32\u0e19\u0e31\u0e01\u0e28\u0e36\u0e01\u0e29\u0e32 \u0e15\u0e31\u0e49\u0e07\u0e08\u0e38\u0e14\u0e41\u0e22\u0e01\u0e02\u0e22\u0e30 3 \u0e41\u0e1a\u0e1a"
+    ],
+    [
+        "F",
+        "SB",
+        "Bangkok has a scheduled collection route with weight limits per collection point",
+        "",
+        "Bangkok",
+        "\u0e01\u0e17\u0e21\u0e21\u0e35\u0e23\u0e2d\u0e1a\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27 (\u0e01\u0e17\u0e21\u0e21\u0e35 limit \u0e02\u0e2d\u0e07\u0e23\u0e16 -> \u0e40\u0e01\u0e47\u0e1a\u0e15\u0e32\u0e21\u0e08\u0e38\u0e14\u0e46\u0e25\u0e30\u0e01\u0e35\u0e48 \u0e01\u0e01.)"
+    ],
+    [
+        "C",
+        "SB",
+        "Excessive trash -> Call Bangkok for special collection case",
+        "",
+        "Bangkok",
+        "\u0e16\u0e49\u0e32\u0e02\u0e22\u0e30\u0e40\u0e22\u0e2d\u0e30\u0e40\u0e01\u0e34\u0e19 -> \u0e42\u0e17\u0e23\u0e40\u0e23\u0e35\u0e22\u0e01\u0e01\u0e17\u0e21\u0e21\u0e32\u0e40\u0e01\u0e47\u0e1a\u0e15\u0e32\u0e21 case"
+    ],
+    [
+        "A",
+        "SB",
+        "People collect from metal grilles daily, but not from every point",
+        "!",
+        "metal grilles",
+        "\u0e15\u0e30\u0e41\u0e01\u0e23\u0e07\u0e40\u0e2b\u0e25\u0e47\u0e01\u0e43\u0e2b\u0e49\u0e04\u0e19\u0e21\u0e32\u0e40\u0e01\u0e47\u0e1a -> \u0e40\u0e02\u0e49\u0e32\u0e21\u0e32\u0e40\u0e01\u0e47\u0e1a\u0e17\u0e38\u0e01\u0e27\u0e31\u0e19\u0e41\u0e15\u0e48\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e01\u0e47\u0e1a\u0e17\u0e38\u0e01\u0e08\u0e38\u0e14"
+    ],
+    [
+        "A",
+        "SB",
+        "Food and vegetable scraps are given to geese",
+        "",
+        "Food scraps",
+        "\u0e40\u0e28\u0e29\u0e2d\u0e32\u0e2b\u0e32\u0e23\u0e1c\u0e31\u0e01\u0e43\u0e2b\u0e49\u0e2b\u0e48\u0e32\u0e19"
+    ],
+    [
+        "A",
+        "SB",
+        "Hazardous materials are sent to a company",
+        "",
+        "Hazardous materials",
+        "\u0e02\u0e2d\u0e07\u0e21\u0e35\u0e1e\u0e34\u0e29\u0e2a\u0e48\u0e07\u0e15\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e1a\u0e23\u0e34\u0e28\u0e31\u0e17"
+    ],
+    [
+        "F",
+        "SB",
+        "The university has a trash buffer truck",
+        "",
+        "trash buffer truck",
+        "\u0e21.\u0e21\u0e35\u0e23\u0e16\u0e02\u0e22\u0e30 buffer"
+    ],
+    [
+        "A",
+        "SB",
+        "Trucks are called on a case-by-case basis to collect tree branches",
+        "",
+        "Trucks",
+        "\u0e16\u0e49\u0e07\u0e25\u0e1a\u0e07\u0e07\u0e1a\u0e32\u0e08\u0e30\u0e40\u0e01\u0e47\u0e1a\u0e01\u0e34\u0e48\u0e07\u0e44\u0e21\u0e49 -> \u0e40\u0e23\u0e35\u0e22\u0e01\u0e23\u0e16\u0e15\u0e32\u0e21 case"
+    ],
+    [
+        "SP",
+        "ES",
+        "Create a trash buffer area outside the university",
+        "",
+        "trash buffer area",
+        "\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e17\u0e35\u0e48\u0e1e\u0e31\u0e01\u0e02\u0e22\u0e30\u0e17\u0e35\u0e48\u0e44\u0e21\u0e48\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19\u0e21\u0e2b\u0e32\u0e25\u0e31\u0e22"
+    ],
+    [
+        "SP",
+        "OT",
+        "Consider the ratio of people to garbage trucks",
+        "",
+        "people, garbage trucks",
+        "Ratio \u0e04\u0e19/\u0e23\u0e16"
+    ],
+    [
+        "SP",
+        "OT",
+        "Analyze cost-effectiveness of increasing/decreasing staff from the university's budget perspective",
+        "",
+        "staff, university's budget",
+        "\u0e21\u0e2d\u0e07\u0e43\u0e19\u0e21\u0e38\u0e21\u0e02\u0e2d\u0e07\u0e07\u0e1a\u0e1b\u0e23\u0e30\u0e21\u0e32\u0e13\u0e21\u0e2b\u0e32\u0e25\u0e31\u0e22\u0e27\u0e48\u0e32\u0e40\u0e1e\u0e34\u0e48\u0e21/\u0e25\u0e14\u0e04\u0e19\u0e04\u0e38\u0e49\u0e21\u0e21\u0e31\u0e49\u0e22"
+    ],
+    [
+        "F",
+        "SB",
+        "Policy changes according to the administrators",
+        "",
+        "Policy, administrators",
+        "\u0e19\u0e42\u0e22\u0e1a\u0e32\u0e22\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e15\u0e32\u0e21\u0e1c\u0e39\u0e49\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23"
+    ],
+    [
+        "F",
+        "SB",
+        "Recyclables are brought from faculties to a central bin on Thursdays for buyers",
+        "",
+        "Recyclables",
+        "Recycle -> thursday bring trash from faculty to bin and people will come buy"
+    ],
+    [
+        "A",
+        "SB",
+        "Electronic trash is sent to a specific person to get hours (credit)",
+        "",
+        "Electronic trash",
+        "Electronic trash -> send to him get hours"
+    ],
+    [
+        "A",
+        "SB",
+        "Indoor trash is collected by janitors, who then separate it into cages",
+        "",
+        "janitors",
+        "\u0e20\u0e32\u0e22\u0e43\u0e19 = \u0e2d\u0e32\u0e04\u0e32\u0e23 \u0e23\u0e27\u0e21\u0e42\u0e14\u0e22\u0e41\u0e21\u0e48\u0e1a\u0e49\u0e32\u0e19 -> \u0e41\u0e21\u0e48\u0e1a\u0e49\u0e32\u0e19\u0e41\u0e22\u0e01 -> \u0e43\u0e2a\u0e48\u0e01\u0e23\u0e07\u0e41\u0e22\u0e01\u0e02\u0e22\u0e30"
+    ],
+    [
+        "F",
+        "SB",
+        "Indoor trash collection rounds are at 7-8 AM and 3-4 PM",
+        "",
+        "Indoor trash",
+        "\u0e23\u0e2d\u0e1a\u0e40\u0e0a\u0e49\u0e32 7-8, \u0e40\u0e22\u0e47\u0e19 3-4"
+    ],
+    [
+        "A",
+        "SB",
+        "Outdoor trash from gardens is collected by truck and taken to a sorting facility",
+        "",
+        "Outdoor trash, truck, sorting facility",
+        "\u0e20\u0e32\u0e22\u0e19\u0e2d\u0e01 = \u0e2a\u0e27\u0e19 \u0e02\u0e31\u0e1a\u0e23\u0e16\u0e40\u0e01\u0e47\u0e1a\u0e23\u0e2d\u0e1a\u0e21\u0e2d -> \u0e42\u0e23\u0e07\u0e04\u0e31\u0e14\u0e41\u0e22\u0e01\u0e02\u0e22\u0e30"
+    ],
+    [
+        "A",
+        "SB",
+        "Sorted trash is processed by 3-4 people; unsortable trash goes to a compactor",
+        "",
+        "sorting facility, compactor",
+        "\u0e02\u0e22\u0e30\u0e04\u0e31\u0e14\u0e41\u0e22\u0e01\u0e44\u0e14\u0e49 -> \u0e04\u0e19 3-4 \u0e41\u0e22\u0e01 -> \u0e41\u0e22\u0e01\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 -> \u0e40\u0e02\u0e49\u0e32\u0e16\u0e31\u0e07\u0e1a\u0e35\u0e1a\u0e2d\u0e31\u0e14"
+    ],
+    [
+        "C",
+        "SB",
+        "Excessive trash in a faculty -> moved to the faculty's own buffer point -> a truck comes to collect",
+        "",
+        "faculty, trash buffer point, truck",
+        "\u0e02\u0e22\u0e30\u0e40\u0e01\u0e34\u0e19 -> \u0e08\u0e38\u0e14\u0e1e\u0e31\u0e01\u0e02\u0e22\u0e30\u0e02\u0e2d\u0e07\u0e41\u0e15\u0e48\u0e25\u0e30\u0e04\u0e13\u0e30(\u0e41\u0e25\u0e49\u0e27\u0e41\u0e15\u0e48) -> \u0e23\u0e16\u0e40\u0e02\u0e49\u0e32\u0e44\u0e1b\u0e02\u0e19"
+    ],
+    [
+        "C",
+        "SB",
+        "Garbage collectors finish at 5pm, but their last collection is 3-4pm. Janitors also finish at 5pm. -> Trash appears to be overflowing",
+        "%",
+        "Garbage collectors, Janitors",
+        "\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e40\u0e01\u0e47\u0e1a\u0e02\u0e22\u0e30 3-4pm(\u0e40\u0e25\u0e34\u0e01 5pm), \u0e41\u0e21\u0e48\u0e1a\u0e49\u0e32\u0e19\u0e40\u0e01\u0e47\u0e1a 5pm (\u0e40\u0e25\u0e34\u0e01 5pm) = \u0e02\u0e22\u0e30\u0e14\u0e39\u0e25\u0e49\u0e19\u0e46"
+    ],
+    [
+        "F",
+        "ES",
+        "Problem: Inaccurate weight measurements due to personnel",
+        "",
+        "personnel",
+        "\u0e1b\u0e31\u0e0d\u0e2b\u0e32 1 -> \u0e01\u0e32\u0e23\u0e04\u0e32\u0e14\u0e40\u0e04\u0e25\u0e37\u0e48\u0e2d\u0e19\u0e01\u0e32\u0e23\u0e0a\u0e31\u0e48\u0e07\u0e19\u0e49\u0e33\u0e2b\u0e19\u0e31\u0e01\u0e40\u0e19\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e32\u0e01\u0e1a\u0e38\u0e04\u0e25\u0e32\u0e01\u0e23"
+    ],
+    [
+        "C",
+        "SB",
+        "Staff are lazy to weigh trash -> Inaccurate data",
+        "%",
+        "Staff",
+        "\u0e08\u0e14 (\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e02\u0e01.\u0e0a\u0e31\u0e48\u0e07)"
+    ],
+    [
+        "F",
+        "ES",
+        "Problem: The central garbage cage is too small and overflows",
+        "",
+        "garbage cage",
+        "\u0e1b\u0e31\u0e0d\u0e2b\u0e32 2 \u0e02\u0e19\u0e32\u0e14\u0e01\u0e23\u0e07\u0e23\u0e27\u0e21\u0e02\u0e22\u0e30\u0e40\u0e25\u0e47\u0e01\u0e44\u0e1b (\u0e2d\u0e22\u0e32\u0e01 renovate...), \u0e02\u0e22\u0e30\u0e25\u0e49\u0e19"
+    ],
+    [
+        "SP",
+        "ES",
+        "Renovate the garbage cage to have a lid and be more convenient",
+        "",
+        "garbage cage",
+        "\u0e2d\u0e22\u0e32\u0e01 renovate \u0e43\u0e2b\u0e49\u0e21\u0e35\u0e1d\u0e32\u0e1b\u0e34\u0e14, \u0e43\u0e0a\u0e49\u0e2a\u0e30\u0e14\u0e27\u0e01"
+    ]
+]
