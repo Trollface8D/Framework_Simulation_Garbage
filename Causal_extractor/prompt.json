@@ -1,0 +1,5 @@
+{
+    "data_extract":"",
+    "named_entity_context_expand":"",
+    "listwise_clustering":"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them\nInstruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key\nOutput Schema:\n'consensus_name':['member1', 'member2'],...\nInput: {}"
+}
