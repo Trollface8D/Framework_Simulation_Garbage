@@ -30,7 +30,9 @@ streamlit run causal_extractor/visualize/visualize.py
 # feature
 ## 1. causal extraction
 - source: extract.py
-TODO
+## 2. named entity correction (NEC)
+to run this module you needed to be in Causal_extractor then call each main function
+# TODO
 - other modallity of file: add way to include other type of file, add the file name in the input context, extract file content
 - also include generation config?
 you can enter data here and just click
