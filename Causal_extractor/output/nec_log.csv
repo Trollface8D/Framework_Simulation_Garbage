@@ -1,0 +1,37 @@
+method, output path, Input path, prompt template, inference time, input tokens, output tokens, reasoning tokens
+Listwise,./output/exp2/output\response_20251104_163229.json,./output/response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+method,Instruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",11.73095274,250,501,1838
+Listwise,./output/exp2/2025-11-12 13:26:36.865824_response_20251104_163229.json,./output/response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+Instruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",9.106645346,250,435,1375
+Listwise,./output/exp2/2025-11-12 13:39:08.069020_response_20251104_163229.json,./output/response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+Instruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",17.84160638,250,437,1228
+Listwise,./output/exp2/listwise_2025-11-19_12-19-47_response_20251104_163229.json,./output/exp1response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+Instruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",15.58005762,250,408,1717
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-28-28_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,3.748459816,14.80691457,18.55537438,
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-31-47_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,3.325990915,49.62763691,52.95362782,
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-35-28_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,3.440942526,16.67993283,20.12087536,
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-39-28_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,3.522017479,135.6218808,139.1438982,
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-41-05_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,3.680084467,70.68232107,74.36240554,
+vector_embedding_clustering,./output/exp2/vec_embedding_2025-11-19_12-49-45_response_20251104_163229.json,./output/exp1response_20251104_163229.json,,63.57227707,,,
+Listwise,./output/exp2/listwise_2025-11-19_12-54-03_response_20251104_163229.json,./output/exp1response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+Instruction: From the list, cluster named entities that seem to bemong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",14.39204454,228,350,1180
+Listwise,./output/exp2/listwise_2025-11-19_13-01-51_response_20251104_163229.json,./output/exp1response_20251104_163229.json,"Problem: this is data from report. there is facts mentioned, however naming for each reporter is inconsistence and I want to group them
+Instruction: From the list, cluster named entities that seem to belong to each other with consensus name as key
+Output Schema:
+'consensus_name':['member1', 'member2'],...
+Input: {}",22.61773992,227,319,2833
