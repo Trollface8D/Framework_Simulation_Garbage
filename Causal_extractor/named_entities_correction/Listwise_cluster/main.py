@@ -23,12 +23,16 @@ with open("prompt.json") as f:
     prompts = json.load(f)
 prompt_template = prompts["listwise_clustering"]
 client = GeminiClient(key=API_KEY)
-path = "./output/"
+path = "./output/exp1"
 dir_path = "./output/exp2/"
 
 
 if __name__ == "__main__":
+    path = input("target directory from root (causal extract folder): ")
+    if path == "":
+        path = "./output/exp1"
     directory_path = Path(path)  # Create a Path object for the current directory
+    
 
     # The .glob() method finds all files matching the pattern
     # The '*' is a wildcard for "anything"
@@ -42,7 +46,14 @@ if __name__ == "__main__":
     #     raw_data = json.load(f)
     selected_file =  filelist[test]
     raw_data = pd.read_json(selected_file)
-    named_entities = raw_data.iloc[:,-2].to_list()
+    named_entities = []
+    # handle decompose comma seperate
+    for record in raw_data.iloc[:,-2].to_list():
+        for i in record.split(","):
+            clean = i.strip()
+            # drop duplicate 
+            if clean not in named_entities:
+                named_entities.append(clean)
     request = prompt_template.format(named_entities)
     print(f"request: {request}")
     try:
@@ -83,10 +94,11 @@ if __name__ == "__main__":
     if not os.path.isfile(log_file_path):
          with open(log_file_path, "w", newline='') as f:
              writer = csv.writer(f)
-             writer.writerow(["output path", "input path", "prompt template", "inference time", "input tokens", "output tokens", "reasoning tokens"])
+             writer.writerow(["method","output path", "input path", "prompt template", "inference time", "input tokens", "output tokens", "reasoning tokens"])
     with open(log_file_path, "a+", newline='') as f:
              writer = csv.writer(f)
              writer.writerow([
+                "Listwise",
                 output_path,
                 path+selected_file.name,
                 prompt_template,
