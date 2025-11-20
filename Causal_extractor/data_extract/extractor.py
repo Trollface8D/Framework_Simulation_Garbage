@@ -1,5 +1,5 @@
 import streamlit as st
-from gemini import GeminiClient
+from Framework_Simulation_Garbage.Causal_extractor.utils.gemini import GeminiClient
 from config import API_KEY, out_as_json
 import pandas as pd
 import os
