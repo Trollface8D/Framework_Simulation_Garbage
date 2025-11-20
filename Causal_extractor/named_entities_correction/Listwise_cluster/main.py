@@ -42,18 +42,23 @@ if __name__ == "__main__":
     filelist = list(json_files_generator)
     print(filelist)
     test = int(input("file index: "))
-    # with open(os.path.join(path, test)) as f:
-    #     raw_data = json.load(f)
     selected_file =  filelist[test]
     raw_data = pd.read_json(selected_file)
-    named_entities = []
-    # handle decompose comma seperate
-    for record in raw_data.iloc[:,-2].to_list():
-        for i in record.split(","):
-            clean = i.strip()
-            # drop duplicate 
-            if clean not in named_entities:
-                named_entities.append(clean)
+    context_add = int(input("using context? (0/1): "))
+    if context_add == 1:
+        named_entities = ""
+        # handle decompose comma seperate
+        for i, record in raw_data.iterrows():
+            named_entities+=f"context: {record[2]} named entity: {record[4]}\n"
+    else:
+        named_entities = []
+        for record in raw_data.iloc[:,-2].to_list():
+            for i in record.split(","):
+                clean = i.strip()
+                # drop duplicate 
+                if clean not in named_entities:
+                    named_entities.append(clean)
+    print("named entity cleaned:" ,named_entities)
     request = prompt_template.format(named_entities)
     print(f"request: {request}")
     try:

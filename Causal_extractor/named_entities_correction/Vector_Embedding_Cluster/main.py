@@ -201,13 +201,22 @@ if __name__ == "__main__":
     selected_file = filelist[test]
     raw_data = pd.read_json(selected_file)
     named_entities = []
-    # handle decompose comma seperate
-    for record in raw_data.iloc[:,-2].to_list():
-        for i in record.split(","):
-            clean = i.strip()
-            # drop duplicate 
-            if clean not in named_entities:
-                named_entities.append(clean)
+    context_add = int(input("using context? (0/1): "))
+    if context_add == 1:
+        named_entities = []
+        # handle decompose comma seperate
+        for i, record in raw_data.iterrows():
+            for j in record[4].split(","):
+                named_entities.append(f"context: {record[2]} named entity: {j.strip()}")
+    else:
+        # handle decompose comma seperate
+        for record in raw_data.iloc[:,-2].to_list():
+            for i in record.split(","):
+                clean = i.strip()
+                # drop duplicate 
+                if clean not in named_entities:
+                    named_entities.append(clean)
+    logging.info("named entity cleaned:" ,named_entities)
 
     # --- Model Loading and Embedding ---
     start_model = time.time()
@@ -226,7 +235,10 @@ if __name__ == "__main__":
     best_k, best_model, prediction = select_best_kmeans(document_embeddings, min_k=2, max_k=min(30, document_embeddings.shape[0]-1))
     end_n_search = time.time()
     # visualize using the labels from the selected model
-    cluster_and_visualize_embeddings(document_embeddings, named_entities, n_clusters=best_k, cluster_labels=prediction)
+    show_text = named_entities
+    if context_add:
+        show_text = [i.split("named entity:")[-1] for i in named_entities]
+    cluster_and_visualize_embeddings(document_embeddings, show_text, n_clusters=best_k, cluster_labels=prediction)
     end_cluster = time.time()
     
     # --- Save Results ---
