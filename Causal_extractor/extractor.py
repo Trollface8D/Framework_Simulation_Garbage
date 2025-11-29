@@ -6,6 +6,7 @@ import os
 
 from datetime import datetime
 import json
+import re
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -84,24 +85,65 @@ with st.form("prompt_form"):
 if submitted:
     if not prompt_template or not user_input:
         st.warning("⚠️ Please provide both a prompt template and an input value.")
-    # A simple check to find at least one placeholder
-    elif '{' not in prompt_template or '}' not in prompt_template:
-        st.warning("⚠️ Your template must contain a placeholder like `{input}`.")
     else:
         with st.spinner("🧠 Gemini is thinking..."):
             try:
                 # Dynamically find the placeholder key (e.g., 'name' from '{name}')
                 # placeholder = prompt_template.split('{')[1].split('}')[0]
-                final_prompt = prompt_template.format(user_input)
+                # Safely substitute user input into the template without invoking
+                # Python's str.format on the whole prompt (which errors if the
+                # prompt contains other braces). Strategies used in order:
+                # 1) Replace literal `{}`
+                # 2) Replace `{input}` specifically
+                # 3) Replace the first simple `{word}` placeholder
+                # 4) Fallback: append the input to the end of the prompt
+                if '{}' in prompt_template:
+                    final_prompt = prompt_template.replace('{}', str(user_input))
+                elif '{input}' in prompt_template:
+                    final_prompt = prompt_template.replace('{input}', str(user_input))
+                else:
+                    m = re.search(r"\{([A-Za-z0-9_]+)\}", prompt_template)
+                    if m:
+                        placeholder = m.group(0)
+                        final_prompt = prompt_template.replace(placeholder, str(user_input), 1)
+                    else:
+                        final_prompt = prompt_template + "\n\nInput: " + str(user_input)
 
                 # --- Call Gemini API ---
                 text, response = model.generate(prompt=final_prompt, generation_config=out_as_json, model_name="gemini-2.5-pro", google_search=False)
                 
                 # Clean the response to extract only the JSON part
-                cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "")
-                
-                # --- Process and Save JSON ---
-                parsed_json = json.loads(cleaned_response_text)
+                raw = (response.text or "").strip()
+                # Remove common markdown fences
+                raw = raw.replace("```json", "").replace("```", "").strip()
+
+                parsed_json = None
+                # Strategy 1: try to parse the entire cleaned raw
+                try:
+                    parsed_json = json.loads(raw)
+                except Exception:
+                    # Strategy 2: extract likely JSON substring ([ ... ] or { ... })
+                    start = raw.find('[')
+                    end = raw.rfind(']')
+                    if start != -1 and end != -1 and end > start:
+                        candidate = raw[start:end+1]
+                    else:
+                        start = raw.find('{')
+                        end = raw.rfind('}')
+                        if start != -1 and end != -1 and end > start:
+                            candidate = raw[start:end+1]
+                        else:
+                            candidate = raw
+
+                    # Remove simple JS-style comments and trailing commas
+                    candidate_no_comments = re.sub(r'//.*(?=\n)|/\*.*?\*/', '', candidate, flags=re.S)
+                    candidate_no_comments = re.sub(r',\s*([}\]])', r'\1', candidate_no_comments)
+
+                    try:
+                        parsed_json = json.loads(candidate_no_comments)
+                    except Exception:
+                        # Raise a JSONDecodeError to be handled by the outer except
+                        raise json.JSONDecodeError("Failed to decode JSON after cleaning", candidate_no_comments, 0)
                 
                 # Generate a unique filename
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
