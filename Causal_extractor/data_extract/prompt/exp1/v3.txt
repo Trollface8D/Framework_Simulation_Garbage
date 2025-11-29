@@ -11,7 +11,7 @@ C (Causal): A direct cause-and-effect relationship. One event or state directly 
 A (Action): Describes an action taken by an entity, which may be part of a causal chain. (e.g., "The city initiated a new policy.")
 F (Fact/Behaviour): A statement of fact or a description of a recurring behavior that isn't presented as a direct cause or effect in the sentence. (e.g., "The system runs diagnostics every hour.")
 
-2. Causal Type Categories:
+2. Sentence Type Categories:
 
 NR (Not Related): The elements are mentioned together but have no clear relationship.
 SB (System Behaviour): The relationship describes the functioning or a process within a defined system.
@@ -19,6 +19,8 @@ ES (Environment Setting): The relationship describes a static condition or conte
 OT (Optimization Target): The relationship explains a goal or a target for improvement.
 SP (Suggest Policy): The text proposes a new rule or course of action.
 D (Define): The text defines a term or concept.
+
+3. Causal Type Categories:
 ME (Marked-Explicit): A clearly stated causal relationship using a strong causal marker word (e.g., because, due to, causes, leads to).
 MI (Marked-Implicit): A potential causal relationship hinted at with a weaker, ambiguous marker (e.g., since, as, with).
 UE (Unmarked-Explicit): A causal relationship that is explicitly stated but without a marker word, often by sentence structure (e.g., "The outage fried the servers.").
@@ -32,10 +34,11 @@ json file:
 [
   {
    "A", // pattern type
-   ["SB", "ME"], //casual type category
+   "SB", //sentence type category
+   "ME", //casual type category
    "New city policy -> Streets are cleaner", // casual statement
    "often", // note
-   "Bangkok", // named entity object
+   "Bangkok", // Named entity/Object in causal
    "The complete original sentence from which the relationship was extracted." // original reference
   }
 ]
