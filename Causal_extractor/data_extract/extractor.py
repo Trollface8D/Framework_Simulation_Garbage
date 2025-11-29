@@ -1,5 +1,27 @@
 import streamlit as st
-from Framework_Simulation_Garbage.Causal_extractor.utils.gemini import GeminiClient
+import sys
+import os
+
+# Try to import the project's GeminiClient using a few fallbacks so the
+# script can be run as a module or directly via `streamlit run`.
+try:
+    # Preferred: when running as part of the package (rare in local dev)
+    from Framework_Simulation_Garbage.Causal_extractor.utils.gemini import GeminiClient
+except Exception:
+    try:
+        # Try importing using package-relative path if Causal_extractor is on sys.path
+        from Causal_extractor.utils.gemini import GeminiClient
+    except Exception:
+        # Fallback: insert the Causal_extractor package directory into sys.path
+        this_dir = os.path.dirname(__file__)
+        causal_pkg_dir = os.path.abspath(os.path.join(this_dir, '..'))
+        if causal_pkg_dir not in sys.path:
+            sys.path.insert(0, causal_pkg_dir)
+        try:
+            from utils.gemini import GeminiClient
+        except Exception as inner_exc:
+            raise
+
 from config import API_KEY, out_as_json
 import pandas as pd
 import os
