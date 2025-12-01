@@ -38,8 +38,9 @@ st.set_page_config(
 )
 
 # --- Constants ---
-OUTPUT_DIR = "output"
-LOG_FILE = "generation_log.csv"
+# Use project-relative paths for output and log inside the data_extract folder
+OUTPUT_DIR = os.path.join("Causal_extractor", "data_extract", "output")
+LOG_FILE = os.path.join("Causal_extractor", "data_extract", "generation_log.csv")
 
 # --- Load API Key and Configure Gemini ---
 
