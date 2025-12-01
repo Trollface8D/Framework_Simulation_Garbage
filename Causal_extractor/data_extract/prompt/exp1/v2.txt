@@ -25,9 +25,12 @@ MI (Marked-Implicit): A potential causal relationship hinted at with a weaker, a
 UE (Unmarked-Explicit): A causal relationship that is explicitly stated but without a marker word, often by sentence structure.
 UI (Unmarked-Implicit): A causal relationship that is not stated but must be inferred from world knowledge and context.
 
+
 OUTPUT FORMAT
 The output MUST be a valid JSON list of objects.
 Each object in the list represents one extracted relationship and must contain the following keys:
+
+
 
 json file: 
 [
