@@ -617,3 +617,142 @@ Ratio คน/รถ
 ,
 Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
 ",response_20251201_214719.json,2025-12-01T21:47:19.670721
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Causal Attributes (Only applies if pattern_type is 'C')
+A. Markedness (marked_type):
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+* N/A: Must be used if pattern_type is NOT 'C'.
+
+B. Explicitness (explicit_type):
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence (e.g., ""It rained. The ground is wet."").
+* N/A: Must be used if pattern_type is NOT 'C'.
+
+Extraction Rules
+
+1. Granularity:
+- Analyze the text sentence by sentence.
+- If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+
+2. Field Extraction:
+- subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+- object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+- relationship: A string summary in the format ""Subject -> Effect/Action"".
+- marker: Extract the exact connector word (e.g., ""because"") if marked_type is ""M"". Otherwise, set to ""null"".
+- source_text: The exact sentence from the input text.
+
+3. Handling Non-Causal (A, F):
+- If pattern_type is 'A' or 'F': Set marked_type and explicit_type to ""N/A"".
+
+Output Format
+Return ONLY a valid JSON list of objects. No markdown code blocks, no preamble, no explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""N/A"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field Question
+
+Janitor
+เวลาเก็บขยะเก็บยังไงบ้างกั๊บ
+วันนึงไปทิ้งขยะกี่ครั้ง 
+ต้องแยกขยะหลังจากเก็บมาจากถังแล้วไหม
+ESSH staff
+Green society
+รถขยะมาเก็บบ่อยแค่ไหน, มาเก็บยังไง
+ตำแหน่งถังขยะ ใช้เกณฑ์อะไรในการวาง
+มาตรการการเก็บขยะ
+ตำแหน่งที่พักขยะสำหรับรวมไว้ให้รถขยะมีไหม
+
+
+Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251201_230729.json,2025-12-01T23:07:29.601967

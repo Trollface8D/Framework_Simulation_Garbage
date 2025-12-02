@@ -1,0 +1,94 @@
+Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Causal Attributes (Only applies if pattern_type is 'C')
+A. Markedness (marked_type):
+* M (Marked): A specific linguistic marker connects the events (e.g., "because", "due to", "causes", "results in").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+* N/A: Must be used if pattern_type is NOT 'C'.
+
+B. Explicitness (explicit_type):
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence (e.g., "It rained. The ground is wet.").
+* N/A: Must be used if pattern_type is NOT 'C'.
+
+Extraction Rules
+
+1. Granularity:
+- Analyze the text sentence by sentence.
+- If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+
+2. Field Extraction:
+- subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert "N/A".
+- object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert "N/A".
+- relationship: A string summary in the format "Subject -> Effect/Action".
+- marker: Extract the exact connector word (e.g., "because") if marked_type is "M". Otherwise, set to "null".
+- source_text: The exact sentence from the input text.
+
+3. Handling Non-Causal (A, F):
+- If pattern_type is 'A' or 'F': Set marked_type and explicit_type to "N/A".
+
+Output Format
+Return ONLY a valid JSON list of objects. No markdown code blocks, no preamble, no explanations.
+
+JSON Example
+[
+  {
+    "pattern_type": "C",
+    "sentence_type": "SP",
+    "marked_type": "M",
+    "explicit_type": "E",
+    "relationship": "New city policy -> Streets are cleaner",
+    "marker": "leads to",
+    "subject": "New city policy",
+    "object": "Streets",
+    "source_text": "The new city policy in Bangkok leads to streets being cleaner."
+  },
+  {
+    "pattern_type": "C",
+    "sentence_type": "SB",
+    "marked_type": "U",
+    "explicit_type": "I",
+    "relationship": "Server Overload -> System Crash",
+    "marker": "null",
+    "subject": "Server",
+    "object": "System",
+    "source_text": "The server overloaded; the system crashed immediately after."
+  },
+  {
+    "pattern_type": "F",
+    "sentence_type": "SB",
+    "marked_type": "N/A",
+    "explicit_type": "N/A",
+    "relationship": "System diagnostics -> Run every hour",
+    "marker": "null",
+    "subject": "System",
+    "object": "Diagnostics",
+    "source_text": "The system runs diagnostics every hour."
+  }
+]
+
+# Input Text
+"""
+{{INSERT TEXT HERE}}
+"""
