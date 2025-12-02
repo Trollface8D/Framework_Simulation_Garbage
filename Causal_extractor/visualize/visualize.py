@@ -4,18 +4,36 @@ import json
 import os
 import re
 
-# Define the base directories
-BASE_DIR = r"Causal_extractor\lib\output"
-REFERENCE_DIR = r"Causal_extractor\lib\reference"
+# Define the base directories (use data_extract output and generation_log as requested)
+BASE_DIR = os.path.join("Causal_extractor", "data_extract", "output")
+REFERENCE_DIR = os.path.join("Causal_extractor", "data_extract")
 
 # --- NEW: Define the score storage path (inside the base directory) ---
 SCORE_FILE_NAME = "validation_scores.json"
 SCORE_FILE_PATH = os.path.join(BASE_DIR, SCORE_FILE_NAME)
 
 # Define column names based on your JSON structure (Main Data)
-COLUMNS = ["pattern", "causal type", "causal", "note", "Named entity/Object in causal", "original reference"]
-# Rename columns for cleaner display and charting
-DISPLAY_COLUMNS = {
+# V4 schema columns (all fields from JSON)
+COLUMNS_V4 = [
+    "pattern_type", "sentence_type", "marked_type", "explicit_type",
+    "relationship", "marker", "subject", "object", "source_text", "reasoning"
+]
+DISPLAY_COLUMNS_V4 = {
+    "pattern_type": "Pattern Type",
+    "sentence_type": "Sentence Type",
+    "marked_type": "Marked Type",
+    "explicit_type": "Explicit Type",
+    "relationship": "Relationship",
+    "marker": "Marker",
+    "subject": "Subject",
+    "object": "Object",
+    "source_text": "Source Text",
+    "reasoning": "Reasoning"
+}
+
+# Legacy V3 schema columns
+COLUMNS_V3 = ["pattern", "causal type", "causal", "note", "Named entity/Object in causal", "original reference"]
+DISPLAY_COLUMNS_V3 = {
     "pattern": "Pattern",
     "causal type": "Causal Type",
     "causal": "Causal Statement",
@@ -23,7 +41,9 @@ DISPLAY_COLUMNS = {
     "Named entity/Object in causal": "Named Entity/Object",
     "original reference": "Original Reference"
 }
-REF_COL_NAME = DISPLAY_COLUMNS['original reference']
+
+# Default to V4 for display references
+REF_COL_NAME = "Source Text"  # V4 uses source_text
 
 # ------------------------------------------------------------------
 # 0. Score Management Functions (NEW)
@@ -55,42 +75,86 @@ def save_scores(scores):
 # ------------------------------------------------------------------
 @st.cache_data(hash_funcs={dict: lambda x: json.dumps(x, sort_keys=True)})
 def load_json_data(file_path, selected_file_name):
+    """Load JSON data from file, auto-detect V3 or V4 schema, return DataFrame with all columns."""
     if not os.path.exists(file_path):
         st.error(f"File not found at: {file_path}")
-        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
+        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
         
-        if isinstance(raw_data, list) and all(isinstance(item, list) for item in raw_data):
-            if raw_data and len(raw_data[0]) != len(COLUMNS):
+        # Helper to safely get a value or empty string
+        def get_val(d, key):
+            v = d.get(key)
+            return v if v is not None else ""
+
+        # Case A: legacy format - list of lists (V3)
+        if isinstance(raw_data, list) and raw_data and isinstance(raw_data[0], list):
+            if len(raw_data[0]) != len(COLUMNS_V3):
                 st.error(f"Column mismatch in file {file_path}.")
-                return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
-            
-            df = pd.DataFrame(raw_data, columns=COLUMNS)
-            df = df.rename(columns=DISPLAY_COLUMNS)
+                return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V3.values()) + ["Score"]), "v3"
 
-            df.insert(0, 'Unique_ID', df.index)
-            df['Score'] = ""
+            df = pd.DataFrame(raw_data, columns=COLUMNS_V3)
+            df = df.rename(columns=DISPLAY_COLUMNS_V3)
+            schema_version = "v3"
 
-            all_scores = load_scores()
-            file_scores = all_scores.get(selected_file_name, {})
+        # Case B: modern format - list of dicts
+        elif isinstance(raw_data, list) and raw_data and isinstance(raw_data[0], dict):
+            first_item = raw_data[0]
+            # Detect V4 schema by checking for v4-specific keys
+            is_v4 = any(k in first_item for k in ['pattern_type', 'sentence_type', 'marked_type', 'explicit_type', 'relationship', 'source_text'])
             
-            def get_score(row):
-                score_key = str(row['Unique_ID'])
-                return str(file_scores.get(score_key, "")) 
+            if is_v4:
+                # V4 schema: extract all fields directly from JSON keys
+                rows = []
+                for item in raw_data:
+                    row = [get_val(item, col) for col in COLUMNS_V4]
+                    rows.append(row)
+                df = pd.DataFrame(rows, columns=COLUMNS_V4)
+                df = df.rename(columns=DISPLAY_COLUMNS_V4)
+                schema_version = "v4"
+            else:
+                # V3-like dict format: map to legacy columns
+                rows = []
+                for item in raw_data:
+                    pattern = item.get('pattern', item.get('pattern_type', ''))
+                    causal_type = item.get('causal type', item.get('sentence_type', ''))
+                    causal = item.get('causal', item.get('causal_statement', item.get('relationship', '')))
+                    note = item.get('note', item.get('notes', item.get('reasoning', '')))
+                    named_entity = item.get('Named entity/Object in causal', item.get('named_entity', item.get('object', '')))
+                    original_reference = item.get('original reference', item.get('original_reference', item.get('source_text', '')))
+                    rows.append([pattern, causal_type, causal, note, named_entity, original_reference])
+                df = pd.DataFrame(rows, columns=COLUMNS_V3)
+                df = df.rename(columns=DISPLAY_COLUMNS_V3)
+                schema_version = "v3"
 
-            df['Score'] = df.apply(get_score, axis=1)
-            
-            return df
+        # Empty list case
+        elif isinstance(raw_data, list) and not raw_data:
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
+
         else:
-            st.error("JSON must be list-of-lists format.")
-            return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
-            
+            st.error("Unsupported JSON format: expected list-of-lists or list-of-dicts.")
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
+
+        # Add Unique_ID and populate Score from saved scores (if any)
+        df.insert(0, 'Unique_ID', df.index)
+        df['Score'] = ""
+
+        all_scores = load_scores()
+        file_scores = all_scores.get(selected_file_name, {})
+
+        def get_score(row):
+            score_key = str(row['Unique_ID'])
+            return str(file_scores.get(score_key, ""))
+
+        df['Score'] = df.apply(get_score, axis=1)
+
+        return df, schema_version
+
     except Exception as e:
         st.error(f"Error reading: {e}")
-        return pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"])
+        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
 
 # ------------------------------------------------------------------
 # 2. CSV Reference Input Loading
@@ -182,14 +246,16 @@ if os.path.isdir(BASE_DIR):
     json_files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json') and f != SCORE_FILE_NAME]
 
 selected_file_name = None
-df = pd.DataFrame(columns=[v for v in DISPLAY_COLUMNS.values()] + ["Score"]) 
+df = pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"])
+schema_version = "v4"  # default
 
 if json_files:
     selected_file_name = st.selectbox("Select JSON", options=json_files)
     
     if selected_file_name:
         full_path = os.path.join(BASE_DIR, selected_file_name)
-        df = load_json_data(full_path, selected_file_name)
+        df, schema_version = load_json_data(full_path, selected_file_name)
+        st.caption(f"Detected schema: **{schema_version.upper()}**")
 else:
     st.info("No JSON files found.")
 
@@ -198,30 +264,43 @@ else:
 # ----------------------------------------------------
 
 if not df.empty:
-    
-    pattern_col = DISPLAY_COLUMNS['pattern']
-    causal_type_col = DISPLAY_COLUMNS['causal type']
+    # Determine column names based on detected schema
+    if schema_version == "v4":
+        pattern_col = DISPLAY_COLUMNS_V4['pattern_type']
+        causal_type_col = DISPLAY_COLUMNS_V4['sentence_type']
+    else:
+        pattern_col = DISPLAY_COLUMNS_V3['pattern']
+        causal_type_col = DISPLAY_COLUMNS_V3['causal type']
 
     col1, col2 = st.columns(2)
 
     with col1:
-        selected_patterns = st.multiselect(
-            f"Filter by {pattern_col}:",
-            df[pattern_col].unique(),
-            default=df[pattern_col].unique()
-        )
+        if pattern_col in df.columns:
+            selected_patterns = st.multiselect(
+                f"Filter by {pattern_col}:",
+                df[pattern_col].unique(),
+                default=df[pattern_col].unique()
+            )
+        else:
+            selected_patterns = []
 
     with col2:
-        selected_causal_types = st.multiselect(
-            f"Filter by {causal_type_col}:",
-            df[causal_type_col].unique(),
-            default=df[causal_type_col].unique()
-        )
+        if causal_type_col in df.columns:
+            selected_causal_types = st.multiselect(
+                f"Filter by {causal_type_col}:",
+                df[causal_type_col].unique(),
+                default=df[causal_type_col].unique()
+            )
+        else:
+            selected_causal_types = []
 
-    df_filtered = df[
-        df[pattern_col].isin(selected_patterns) & 
-        df[causal_type_col].isin(selected_causal_types)
-    ].reset_index(drop=True)
+    # Apply filters only if columns exist
+    df_filtered = df.copy()
+    if pattern_col in df.columns and selected_patterns:
+        df_filtered = df_filtered[df_filtered[pattern_col].isin(selected_patterns)]
+    if causal_type_col in df.columns and selected_causal_types:
+        df_filtered = df_filtered[df_filtered[causal_type_col].isin(selected_causal_types)]
+    df_filtered = df_filtered.reset_index(drop=True)
     
     st.subheader(f"Filtered Data ({len(df_filtered)} rows)")
 
@@ -241,14 +320,29 @@ if not df.empty:
     # ----------------------------------------------------
     st.header("Causal Statement Detail View")
 
-    cols_for_selection = [
-        'Unique_ID',
-        DISPLAY_COLUMNS['pattern'],
-        DISPLAY_COLUMNS['causal type'],
-        DISPLAY_COLUMNS['causal'],
-        'Score',
-        DISPLAY_COLUMNS['original reference']
-    ]
+    # Build detail view columns based on schema
+    if schema_version == "v4":
+        cols_for_selection = [
+            'Unique_ID',
+            DISPLAY_COLUMNS_V4['pattern_type'],
+            DISPLAY_COLUMNS_V4['sentence_type'],
+            DISPLAY_COLUMNS_V4['marked_type'],
+            DISPLAY_COLUMNS_V4['explicit_type'],
+            DISPLAY_COLUMNS_V4['relationship'],
+            'Score',
+            DISPLAY_COLUMNS_V4['source_text']
+        ]
+    else:
+        cols_for_selection = [
+            'Unique_ID',
+            DISPLAY_COLUMNS_V3['pattern'],
+            DISPLAY_COLUMNS_V3['causal type'],
+            DISPLAY_COLUMNS_V3['causal'],
+            'Score',
+            DISPLAY_COLUMNS_V3['original reference']
+        ]
+    # Filter to only include columns that exist in df
+    cols_for_selection = [c for c in cols_for_selection if c in df_filtered.columns]
     
     df_selection_view = df_filtered[cols_for_selection].copy()
     df_selection_view.insert(0, 'Select', False)
@@ -305,8 +399,12 @@ if not df.empty:
             # ---------------------------
             # Comparison Display
             # ---------------------------
-            causal_statement = selected_row_data[DISPLAY_COLUMNS['causal']]
-            original_reference_text = str(selected_row_data[DISPLAY_COLUMNS['original reference']]).strip()
+            if schema_version == "v4":
+                causal_statement = selected_row_data.get(DISPLAY_COLUMNS_V4['relationship'], '')
+                original_reference_text = str(selected_row_data.get(DISPLAY_COLUMNS_V4['source_text'], '')).strip()
+            else:
+                causal_statement = selected_row_data.get(DISPLAY_COLUMNS_V3['causal'], '')
+                original_reference_text = str(selected_row_data.get(DISPLAY_COLUMNS_V3['original reference'], '')).strip()
             
             st.subheader("Selected Item Details and Comparison")
             st.markdown(f"**Extracted:** *{causal_statement}*")

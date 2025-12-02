@@ -756,3 +756,2069 @@ Ratio คน/รถ
 ,
 Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
 ",response_20251201_230729.json,2025-12-01T23:07:29.601967
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The statement or relationship is directly stated in the text.
+* I (Implicit): The relationship or fact is inferred via world knowledge, context, or logical sequence (e.g., ""The ground is wet"" implies it rained, or a behavior is implied but not stated).
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * object: The primary entity affected by the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field Question
+
+Janitor
+เวลาเก็บขยะเก็บยังไงบ้างกั๊บ
+วันนึงไปทิ้งขยะกี่ครั้ง 
+ต้องแยกขยะหลังจากเก็บมาจากถังแล้วไหม
+ESSH staff
+Green society
+รถขยะมาเก็บบ่อยแค่ไหน, มาเก็บยังไง
+ตำแหน่งถังขยะ ใช้เกณฑ์อะไรในการวาง
+มาตรการการเก็บขยะ
+ตำแหน่งที่พักขยะสำหรับรวมไว้ให้รถขยะมีไหม
+
+
+Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_133728.json,2025-12-02T13:37:28.944187
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence (e.g., ""It rained. The ground is wet."").
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * object: The primary entity affected by the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field Question
+
+Janitor
+เวลาเก็บขยะเก็บยังไงบ้างกั๊บ
+วันนึงไปทิ้งขยะกี่ครั้ง 
+ต้องแยกขยะหลังจากเก็บมาจากถังแล้วไหม
+ESSH staff
+Green society
+รถขยะมาเก็บบ่อยแค่ไหน, มาเก็บยังไง
+ตำแหน่งถังขยะ ใช้เกณฑ์อะไรในการวาง
+มาตรการการเก็บขยะ
+ตำแหน่งที่พักขยะสำหรับรวมไว้ให้รถขยะมีไหม
+
+
+Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_134259.json,2025-12-02T13:42:59.135380
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * object: The primary entity affected by the event (extract the full noun clause). If multiple, separate by comma. If not found, use ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field Question
+
+Janitor
+เวลาเก็บขยะเก็บยังไงบ้างกั๊บ
+วันนึงไปทิ้งขยะกี่ครั้ง 
+ต้องแยกขยะหลังจากเก็บมาจากถังแล้วไหม
+ESSH staff
+Green society
+รถขยะมาเก็บบ่อยแค่ไหน, มาเก็บยังไง
+ตำแหน่งถังขยะ ใช้เกณฑ์อะไรในการวาง
+มาตรการการเก็บขยะ
+ตำแหน่งที่พักขยะสำหรับรวมไว้ให้รถขยะมีไหม
+
+
+Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_135223.json,2025-12-02T13:52:23.520131
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field Question
+
+Janitor
+เวลาเก็บขยะเก็บยังไงบ้างกั๊บ
+วันนึงไปทิ้งขยะกี่ครั้ง 
+ต้องแยกขยะหลังจากเก็บมาจากถังแล้วไหม
+ESSH staff
+Green society
+รถขยะมาเก็บบ่อยแค่ไหน, มาเก็บยังไง
+ตำแหน่งถังขยะ ใช้เกณฑ์อะไรในการวาง
+มาตรการการเก็บขยะ
+ตำแหน่งที่พักขยะสำหรับรวมไว้ให้รถขยะมีไหม
+
+
+Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_135659.json,2025-12-02T13:56:59.424693
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  },
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""U"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""Server Overload -> System Crash"",
+    ""marker"": ""null"",
+    ""subject"": ""Server"",
+    ""object"": ""System"",
+    ""source_text"": ""The server overloaded; the system crashed immediately after.""
+  },
+  {
+    ""pattern_type"": ""F"",
+    ""sentence_type"": ""SB"",
+    ""marked_type"": ""N/A"",
+    ""explicit_type"": ""I"",
+    ""relationship"": ""System diagnostics -> Run every hour"",
+    ""marker"": ""null"",
+    ""subject"": ""System"",
+    ""object"": ""Diagnostics"",
+    ""source_text"": ""The system runs diagnostics every hour.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_135954.json,2025-12-02T13:59:54.544190
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* **C (Causal):** A direct cause-and-effect relationship where X leads to Y.
+* **A (Action):** An entity performs an action, but it is not explicitly framed as a cause leading to a distinct downstream effect in this context.
+* **F (Fact/Behavior):** A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_151753.json,2025-12-02T15:17:53.779339
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_152116.json,2025-12-02T15:21:16.178500
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_152458.json,2025-12-02T15:24:58.126396
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * Follow Schema Definitions to determine each Attributes according to the schema.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_153603.json,2025-12-02T15:36:03.300049
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * Follow Schema Definitions to determine each Attributes according to the schema.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_153605.json,2025-12-02T15:36:05.661750
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma. Critical, do not use pronouns extacted from sentence directly, use semantic meaning to get noun.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database""). Critical, do not use pronouns extacted from sentence directly, use semantic meaning to get noun.
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""reasoning"": ""Cross-sentence causality. Sentence A describes a policy, Sentence B describes the result. 'Leads to' is the marker."",
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_160833.json,2025-12-02T16:08:33.449475
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma. Critical, do not use pronouns extacted from sentence directly, use semantic meaning to get noun.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database""). Critical, do not use pronouns extacted from sentence directly, use semantic meaning to get noun.
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_160943.json,2025-12-02T16:09:43.533734
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text sentence-by-sentence and output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+*Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".*
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+*Applies to ALL pattern types (C, A, F).*
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+# Extraction Rules
+
+1.  Granularity & Parsing:
+    * Analyze the text sentence by sentence.
+    * Follow Schema Definitions to determine each Attributes according to the schema.
+    * If a single sentence contains multiple distinct relationships (e.g., A causes B, and B causes C), output separate JSON objects for each relationship.
+    * **Translation:** If the text is in Thai, extract the semantic meaning and output the values in English.
+
+2.  Field Extraction:
+    * subject: The primary entity initiating the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * object: The primary entity affected by the event. If there is mutiple, separate them by comma (,). If it not found, insert ""N/A"".
+    * relationship: A string summary in the format ""Subject -> Effect/Action"".
+    * marker: Extract the exact connector word (e.g., ""because"") if `marked_type` is ""M"". Otherwise, set to ""null"".
+    * source_text: The exact original sentence from the input text.
+
+3.  Handling Non-Causal (A, F):
+    * Set `marked_type` and `marker` to ""N/A"" and ""null"" respectively.
+    * **Crucial:** You must still evaluate `explicit_type` for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok leads to streets being cleaner.""
+  }
+]
+
+# Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_162142.json,2025-12-02T16:21:42.510362
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""reasoning"": ""Cross-sentence causality. Sentence A describes a policy, Sentence B describes the result. 'Leads to' is the marker."",
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_162238.json,2025-12-02T16:22:38.494593
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_162320.json,2025-12-02T16:23:20.870048
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_162325.json,2025-12-02T16:23:25.051562
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., ""The server failed. Consequently, the app crashed."").
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* **Important: Translation, If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+",response_20251202_162924.json,2025-12-02T16:29:24.069545
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y, check from marker.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* **Important: Translation, If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_171853.json,2025-12-02T17:18:53.659566
+"Role
+You are an expert Data Analyst and Computational Linguist specializing in Causal Inference and Information Extraction.
+
+Objective
+Analyze the provided text to extract specific semantic and causal relationships. You must parse the text to output the findings as a structured JSON list.
+
+Schema Definitions
+
+1. Pattern Types (pattern_type)
+Classify the fundamental nature of the event:
+* C (Causal): A direct cause-and-effect relationship (X leads to Y).
+* A (Action): An entity performs an action, but it is not explicitly framed as a cause leading to a distinct effect in this context.
+* F (Fact/Behavior): A static statement, state of being, or recurring behavior.
+
+2. Sentence Categories (sentence_type)
+Classify the context of the sentence:
+* SB (System Behavior): Technical processes, software functioning, or mechanical operations.
+* ES (Environment Setting): Context, background information, or static conditions.
+* OT (Optimization Target): Specific metrics, goals, or targets for improvement.
+* SP (Suggest Policy): Proposals for rules, regulations, or courses of action.
+* D (Define): Definitions of terms or concepts.
+* NR (Not Related/Other): General chitchat or sentences fitting none of the above.
+
+3. Attributes
+A. Markedness (marked_type)
+Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to ""N/A"".
+* M (Marked): A specific linguistic marker connects the events (e.g., ""because"", ""due to"", ""causes"", ""results in"", ""consequently"").
+* U (Unmarked): The link is established via punctuation (colon, semicolon), sequence, or context without a specific connector word.
+
+B. Explicitness (explicit_type)
+Applies to ALL pattern types (C, A, F).
+* E (Explicit): The text explicitly states X causes Y, check from marker.
+* I (Implicit): Causality is inferred via world knowledge or sequence.
+
+Extraction Rules
+
+1. Scope & Logic:
+* Chain of Thought: Before extracting, verify: ""Is there a change of state? Is the Subject the logical cause or just the grammatical subject?""
+* **Important: Translation, If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+
+2. Field Extraction:
+* subject: The Logical Cause or Agent initiating the event. (e.g., In ""The database was corrupted by the script"", the Subject is ""The script""). If multiple, separate by comma.
+* object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is ""The database"").
+* relationship: A string summary in the format ""Subject -> Effect/Action or object clause"".
+* marker: Extract the exact connector word (e.g., ""because"", ""ดังนั้น"") if marked_type is ""M"". If the marker is in Thai, keep it in Thai. Otherwise ""null"".
+* source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
+
+3. Handling Non-Causal (A, F):
+* Set marked_type and marker to ""N/A"" and ""null"" respectively.
+* Crucial: You must still evaluate explicit_type for 'A' and 'F'.
+
+Output Format
+Return ONLY a valid JSON list of objects. Do not wrap the JSON in markdown code blocks. Do not include preambles or explanations.
+
+JSON Example
+[
+  {
+    ""pattern_type"": ""C"",
+    ""sentence_type"": ""SP"",
+    ""marked_type"": ""M"",
+    ""explicit_type"": ""E"",
+    ""relationship"": ""New city policy -> Streets are cleaner"",
+    ""marker"": ""leads to"",
+    ""subject"": ""New city policy"",
+    ""object"": ""Streets"",
+    ""source_text"": ""The new city policy in Bangkok was approved. This leads to streets being cleaner.""
+  }
+]
+
+Input Text
+""""""
+{{INSERT TEXT HERE}}
+""""""","Field report from Best
+
+From ESSH staff (P’Deer), we can talk with the staff responsible for garbage management on 09/09/2025 the missing information should be filled by that day. The schedule of the truck seems to be agreed on both Bangkok and university ends. And they come to collect quite often. We know that university staff will call for trash trucks only when there is some event that causes an unusual amount of trash.Also due to limited space in our university, the garbage buffer is created to store trash preventing normal collection points from overflowing. it is created without proper design making it close to human traffic. And these challenges emerge as universities accept more students. Increase in the number of students also increases the number of trash producers and is related to the appropriate interval of trash collection.
+He mentions that the most important factor that makes the project in general fail is economic feasibility. Ex. gains after employing developed policy consume more monthly cost and give insignificant improvement compared to old policy. We may need to include financial factor and staff sentiment to the reward function
+We also got map of the trash bin location here: PinPlaninU.pdf - Google Drive
+
+Interview P'Deer (from Pob)
+ตอน event หานักศึกษา ตั้งจุดแยกขยะ 3 แบบ
+ส่ง (ไม่ได้ทำไรเพิ่ม, แค่แยกประเภทไว้ให้(ขวดพลาสติก กะ แก้วกาแฟเละ))
+กทมมีรอบอยู่แล้ว (กทมมี limit ของรถ -> เก็บตามจุดๆละกี่ กก.)
+ถ้าขยะเยอะเกิน -> โทรเรียกกทมมาเก็บตาม case
+ตะแกรงเหล็กให้คนมาเก็บ -> เข้ามาเก็บทุกวันแต่ไม่ได้เก็บทุกจุด
+เศษอาหารผักให้ห่าน
+มี event ให้มูลนิธิ
+ของมีพิษส่งต่อให้บริศัท
+ม.มีรถขยะ buffer
+ถ้งลบงงบาจะเก็บกิ่งไม้ -> เรียกรถตาม case
+Comment: 
+สร้างที่พักขยะที่ไม่อยู่ในมหาลัย
+ปริมาณคนที่มหาลัยเพิ่ม/หน้าที่ของแต่ละคน
+Ratio คน/รถ
+มองในมุมของงบประมาณมหาลัยว่าเพิ่ม/ลดคนคุ้มมั้ย
+นโยบายเปลี่ยนตามผู้บริหาร
+
+09/09/2025 ติดต่อพี่มอส 064-479-1946 อาคารอเนกประสงชั้น 2 เข้าประตูขวามือห้องแรก 2 กลุ่ม
+จดไม่ทัน
+ประติบัติการ
+,
+ทั่วไป 5
+,
+Food Recycle General Toxic Material -> cement, branches Food waste kfc -> Biogas Dorm -> fertilizer Combined bin-> Bangkok Recycle -> thursday bring trash from faculty to bin and people will come buy Electronic trash -> send to him get hours มูลนิธิกระจกเงา ภายใน = อาคาร รวมโดยแม่บ้าน -> แม่บ้านแยก -> ใส่กรงแยกขยะ รอบเช้า 7-8, เย็น 3-4 ภายนอก = สวน ขับรถเก็บรอบมอ -> โรงคัดแยกขยะ ขยะคัดแยกได้ -> คน 3-4 แยก -> แยกไม่ได้ -> เข้าถังบีบอัด มีคนที่ปรึกษาสำหรับแต่ละตึก ถ้ามีขยะชิ้นใหญ่หรือปริมานมาก ขยะเกิน -> จุดพักขยะของแต่ละคณะ(แล้วแต่) -> รถเข้าไปขน พนักงานเก็บขยะ 3-4pm(เลิก 5pm), แม่บ้านเก็บ 5pm (เลิก 5pm) = ขยะดูล้นๆ ปัญหา 1 -> การคาดเคลื่อนการชั่งน้ำหนักเนื่องจากบุคลากร ขยะบนอาคาร -> รวมมาข้างล่าง มีเครื่องชั่ง -> จด (พนักงานขก.ชั่ง) ปัญหา 2 ขนาดกรงรวมขยะเล็กไป (อยาก renovate ให้มีฝาปิด, ใช้สะดวก), ขยะล้น
+",response_20251202_172235.json,2025-12-02T17:22:35.253417

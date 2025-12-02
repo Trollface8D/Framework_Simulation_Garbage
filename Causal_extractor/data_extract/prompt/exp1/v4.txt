@@ -29,21 +29,19 @@ Applies ONLY if pattern_type is 'C'. For 'A' or 'F', set to "N/A".
 
 B. Explicitness (explicit_type)
 Applies to ALL pattern types (C, A, F).
-* E (Explicit): The text explicitly states X causes Y.
+* E (Explicit): The text explicitly states X causes Y, check from marker.
 * I (Implicit): Causality is inferred via world knowledge or sequence.
 
 Extraction Rules
 
 1. Scope & Logic:
-* Cross-Sentence Analysis: Do not limit analysis to isolated sentences. You must identify relationships that span across adjacent sentences (e.g., "The server failed. Consequently, the app crashed.").
 * Chain of Thought: Before extracting, verify: "Is there a change of state? Is the Subject the logical cause or just the grammatical subject?"
-* Translation: If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
+* **Important: Translation, If the text is in Thai, extract the semantic meaning and output the values (reasoning, subject, object, relationship) in English. However, source_text MUST remain in the original language.
 
 2. Field Extraction:
-* reasoning: A brief string explaining WHY you chose the pattern_type. Mention if the link crosses sentence boundaries.
 * subject: The Logical Cause or Agent initiating the event. (e.g., In "The database was corrupted by the script", the Subject is "The script"). If multiple, separate by comma.
 * object: The Logical Effect or Target affected by the event. (e.g., In the example above, Object is "The database").
-* relationship: A string summary in the format "Subject -> Effect/Action".
+* relationship: A string summary in the format "Subject -> Effect/Action or object clause".
 * marker: Extract the exact connector word (e.g., "because", "ดังนั้น") if marked_type is "M". If the marker is in Thai, keep it in Thai. Otherwise "null".
 * source_text: The exact original text (Thai or English) supporting this finding. If the relationship spans multiple sentences, include both.
 
