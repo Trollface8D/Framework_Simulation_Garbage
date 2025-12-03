@@ -357,6 +357,21 @@ if not df.empty:
     df_selection_view = df_filtered[cols_for_selection].copy()
     df_selection_view.insert(0, 'Select', False)
     
+    # Initialize current_selected_index in session state if not present
+    if 'current_selected_index' not in st.session_state:
+        st.session_state.current_selected_index = None
+    
+    # Auto-select row based on session state (persists across reruns)
+    if 'auto_select_index' in st.session_state and st.session_state.auto_select_index is not None:
+        st.session_state.current_selected_index = st.session_state.auto_select_index
+        st.session_state.auto_select_index = None  # Clear the trigger
+    
+    # Apply the current selection
+    if st.session_state.current_selected_index is not None:
+        idx = st.session_state.current_selected_index
+        if idx < len(df_selection_view):
+            df_selection_view.loc[idx, 'Select'] = True
+    
     edited_df_view = st.data_editor(
         df_selection_view.drop(columns=['Unique_ID']), 
         use_container_width=True, 
@@ -377,6 +392,13 @@ if not df.empty:
     )
     
     selected_rows = edited_df_with_id[edited_df_with_id['Select'] == True]
+    
+    # Update session state based on user's manual selection in data_editor
+    if len(selected_rows) == 1:
+        new_selected_idx = selected_rows.iloc[0]['original_index']
+        st.session_state.current_selected_index = new_selected_idx
+    elif len(selected_rows) == 0:
+        st.session_state.current_selected_index = None
     
     if len(selected_rows) >= 1:
         # ---------------------------
@@ -421,6 +443,15 @@ if not df.empty:
                 }
                 all_scores[selected_file_name] = file_scores
                 save_scores(all_scores)
+                
+                # Find current row index and set next row to be auto-selected
+                current_idx = selected_row_data['original_index']
+                next_idx = current_idx + 1
+                if next_idx < len(df_filtered):
+                    st.session_state.auto_select_index = next_idx
+                else:
+                    st.session_state.auto_select_index = None  # No more rows
+                
                 st.cache_data.clear()
                 st.rerun()
 
@@ -462,6 +493,25 @@ if not df.empty:
             details_col, source_col = st.columns(2)
             
             with details_col:
+                # Show current index with navigation buttons
+                current_idx = selected_row_data['original_index']
+                
+                # Navigation row: Prev button, Index display, Next button
+                nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+                
+                with nav_col1:
+                    if st.button("⬅️ Prev", disabled=(current_idx == 0), key="prev_btn"):
+                        st.session_state.auto_select_index = current_idx - 1
+                        st.rerun()
+                
+                with nav_col2:
+                    st.markdown(f"<h3 style='text-align: center; margin: 0;'>📍 {current_idx + 1} / {len(df_filtered)}</h3>", unsafe_allow_html=True)
+                
+                with nav_col3:
+                    if st.button("Next ➡️", disabled=(current_idx >= len(df_filtered) - 1), key="next_btn"):
+                        st.session_state.auto_select_index = current_idx + 1
+                        st.rerun()
+                
                 st.subheader("📝 Selected Item Details")
                 
                 # Display all types in a clear grid layout
@@ -504,18 +554,48 @@ if not df.empty:
                     
                     highlight_style = 'background-color: #981ca3; font-weight: bold; color: white; padding: 2px; border-radius: 2px;' 
                     best_csv_match = None
+                    matched_segments = []
                     
-                    for csv_input in df_reference_input['input'].tolist():
-                        if raw_text.lower() in csv_input.lower():
-                            best_csv_match = csv_input
-                            break
+                    # Check if text contains "..." (ellipsis indicating shortened text)
+                    if "..." in raw_text:
+                        # Split by "..." and filter out empty segments
+                        segments = [seg.strip() for seg in raw_text.split("...") if seg.strip()]
+                        
+                        for csv_input in df_reference_input['input'].tolist():
+                            csv_lower = csv_input.lower()
+                            # Check if ALL segments are found in the CSV input
+                            all_found = all(seg.lower() in csv_lower for seg in segments)
+                            if all_found:
+                                best_csv_match = csv_input
+                                matched_segments = segments
+                                break
+                    else:
+                        # Original simple matching for complete text
+                        for csv_input in df_reference_input['input'].tolist():
+                            if raw_text.lower() in csv_input.lower():
+                                best_csv_match = csv_input
+                                matched_segments = [raw_text]
+                                break
                     
                     if best_csv_match:
-                        styled_segment = f"<span style='{highlight_style}'>{raw_text}</span>"
-                        final = best_csv_match.replace(raw_text, styled_segment, 1)
+                        final = best_csv_match
+                        # Highlight each matched segment
+                        for segment in matched_segments:
+                            # Find the segment case-insensitively but preserve original case
+                            import re
+                            pattern = re.compile(re.escape(segment), re.IGNORECASE)
+                            match = pattern.search(final)
+                            if match:
+                                original_text = match.group()
+                                styled_segment = f"<span style='{highlight_style}'>{original_text}</span>"
+                                final = final[:match.start()] + styled_segment + final[match.end():]
                         
                         st.markdown("**CSV Input (Source Document)**")
                         st.markdown(final, unsafe_allow_html=True)
+                        
+                        # Show info about ellipsis handling if applicable
+                        if len(matched_segments) > 1:
+                            st.caption(f"ℹ️ Text was shortened with '...'. Matched {len(matched_segments)} segments.")
                     else:
                         st.warning("Original snippet not found inside CSV input text.")
                         st.markdown(f"**Source Text:** {raw_text}")

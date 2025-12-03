@@ -31,6 +31,46 @@
         "7": {
             "score": "2",
             "notes": "Wrong NER extraction, should given the \"economic feasibility\" instead, problem in passive sentence extraction"
+        },
+        "8": {
+            "score": "5",
+            "notes": ""
+        },
+        "9": {
+            "score": "5",
+            "notes": ""
+        },
+        "10": {
+            "score": "1",
+            "notes": "unrelated, causal contain entire sentences"
+        },
+        "11": {
+            "score": "5",
+            "notes": "super good extraction, add sentimantic value while keeping \"I\" tag when compomise"
+        },
+        "12": {
+            "score": "2",
+            "notes": "should link with \"สร้างที่พักขยะ\", missing sentimatic meaning"
+        },
+        "13": {
+            "score": "5",
+            "notes": ""
+        },
+        "14": {
+            "score": "5",
+            "notes": ""
+        },
+        "15": {
+            "score": "5",
+            "notes": ""
+        },
+        "16": {
+            "score": "5",
+            "notes": ""
+        },
+        "17": {
+            "score": "5",
+            "notes": ""
         }
     }
 }
