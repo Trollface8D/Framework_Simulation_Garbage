@@ -46,11 +46,11 @@ DISPLAY_COLUMNS_V3 = {
 REF_COL_NAME = "Source Text"  # V4 uses source_text
 
 # ------------------------------------------------------------------
-# 0. Score Management Functions (NEW)
+# 0. Score & Notes Management Functions
 # ------------------------------------------------------------------
 
 def load_scores():
-    """Loads the validation scores from a JSON file."""
+    """Loads the validation scores and notes from a JSON file."""
     if not os.path.exists(SCORE_FILE_PATH):
         return {}
     try:
@@ -61,14 +61,24 @@ def load_scores():
         return {}
 
 def save_scores(scores):
-    """Saves the current validation scores to a JSON file."""
+    """Saves the current validation scores and notes to a JSON file."""
     try:
         os.makedirs(os.path.dirname(SCORE_FILE_PATH), exist_ok=True)
         with open(SCORE_FILE_PATH, 'w', encoding='utf-8') as f:
-            json.dump(scores, f, indent=4)
-        st.toast("✅ Scores saved successfully!", icon='💾')
+            json.dump(scores, f, indent=4, ensure_ascii=False)
+        st.toast("✅ Saved successfully!", icon='💾')
     except Exception as e:
-        st.error(f"Error saving scores: {e}")
+        st.error(f"Error saving: {e}")
+
+def get_score_and_notes(all_scores, file_name, unique_id):
+    """Get score and notes for a specific row. Handles both old format (string) and new format (dict)."""
+    file_scores = all_scores.get(file_name, {})
+    entry = file_scores.get(str(unique_id), {})
+    # Handle old format where entry was just a score string
+    if isinstance(entry, str):
+        return entry, ""
+    # New format: {"score": "...", "notes": "..."}
+    return entry.get("score", ""), entry.get("notes", "")
 
 # ------------------------------------------------------------------
 # 1. JSON Data Loading (Main Data) - MODIFIED to include scores
@@ -131,30 +141,30 @@ def load_json_data(file_path, selected_file_name):
 
         # Empty list case
         elif isinstance(raw_data, list) and not raw_data:
-            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
 
         else:
             st.error("Unsupported JSON format: expected list-of-lists or list-of-dicts.")
-            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
 
-        # Add Unique_ID and populate Score from saved scores (if any)
+        # Add Unique_ID and populate Score/Notes from saved data (if any)
         df.insert(0, 'Unique_ID', df.index)
         df['Score'] = ""
+        df['Notes'] = ""
 
         all_scores = load_scores()
-        file_scores = all_scores.get(selected_file_name, {})
 
-        def get_score(row):
-            score_key = str(row['Unique_ID'])
-            return str(file_scores.get(score_key, ""))
+        def populate_score_notes(row):
+            score, notes = get_score_and_notes(all_scores, selected_file_name, row['Unique_ID'])
+            return pd.Series({'Score': score, 'Notes': notes})
 
-        df['Score'] = df.apply(get_score, axis=1)
+        df[['Score', 'Notes']] = df.apply(populate_score_notes, axis=1)
 
         return df, schema_version
 
     except Exception as e:
         st.error(f"Error reading: {e}")
-        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"]), "v4"
+        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
 
 # ------------------------------------------------------------------
 # 2. CSV Reference Input Loading
@@ -246,7 +256,7 @@ if os.path.isdir(BASE_DIR):
     json_files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json') and f != SCORE_FILE_NAME]
 
 selected_file_name = None
-df = pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score"])
+df = pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"])
 schema_version = "v4"  # default
 
 if json_files:
@@ -370,25 +380,45 @@ if not df.empty:
     
     if len(selected_rows) >= 1:
         # ---------------------------
-        # INLINE SCORE EDIT SECTION
+        # INLINE SCORE & NOTES EDIT SECTION
         # ---------------------------
         if len(selected_rows) == 1:
             selected_row_data = selected_rows.iloc[0]
             selected_unique_id = str(selected_row_data['Unique_ID'])
+            
+            # Get current score and notes
+            all_scores = load_scores()
+            current_score, current_notes = get_score_and_notes(all_scores, selected_file_name, selected_unique_id)
 
-            st.write("### ✍️ Edit Score Inline")
-            inline_value = st.radio(
-                "Score for this statement:",
-                options=["1", "2", "3", "4", "5"],
-                index=["1", "2", "3", "4", "5"].index(selected_row_data['Score']) if selected_row_data['Score'] in ["1", "2", "3", "4", "5"] else 0,
-                horizontal=True,
-                key=f"inline_{selected_unique_id}"
-            )
+            st.write("### ✍️ Edit Score & Notes")
+            
+            score_col, notes_col = st.columns([1, 2])
+            
+            with score_col:
+                inline_value = st.radio(
+                    "Score:",
+                    options=["1", "2", "3", "4", "5"],
+                    index=["1", "2", "3", "4", "5"].index(current_score) if current_score in ["1", "2", "3", "4", "5"] else 0,
+                    horizontal=True,
+                    key=f"inline_{selected_unique_id}"
+                )
+            
+            with notes_col:
+                inline_notes = st.text_area(
+                    "Notes:",
+                    value=current_notes,
+                    height=100,
+                    placeholder="Add your notes here...",
+                    key=f"notes_{selected_unique_id}"
+                )
 
-            if st.button("💾 Save Inline Score", type="primary"):
+            if st.button("💾 Save Score & Notes", type="primary"):
                 all_scores = load_scores()
                 file_scores = all_scores.get(selected_file_name, {})
-                file_scores[selected_unique_id] = inline_value.strip()
+                file_scores[selected_unique_id] = {
+                    "score": inline_value.strip(),
+                    "notes": inline_notes.strip()
+                }
                 all_scores[selected_file_name] = file_scores
                 save_scores(all_scores)
                 st.cache_data.clear()
@@ -399,42 +429,99 @@ if not df.empty:
             # ---------------------------
             # Comparison Display
             # ---------------------------
+            # Get the full row data from df_filtered using Unique_ID
+            unique_id = selected_row_data['Unique_ID']
+            full_row = df_filtered[df_filtered['Unique_ID'] == unique_id].iloc[0]
+            
             if schema_version == "v4":
-                causal_statement = selected_row_data.get(DISPLAY_COLUMNS_V4['relationship'], '')
-                original_reference_text = str(selected_row_data.get(DISPLAY_COLUMNS_V4['source_text'], '')).strip()
+                causal_statement = full_row.get(DISPLAY_COLUMNS_V4['relationship'], '')
+                original_reference_text = str(full_row.get(DISPLAY_COLUMNS_V4['source_text'], '')).strip()
+                # Get all type fields and marker for V4
+                pattern_type = full_row.get(DISPLAY_COLUMNS_V4['pattern_type'], '')
+                sentence_type = full_row.get(DISPLAY_COLUMNS_V4['sentence_type'], '')
+                marked_type = full_row.get(DISPLAY_COLUMNS_V4['marked_type'], '')
+                explicit_type = full_row.get(DISPLAY_COLUMNS_V4['explicit_type'], '')
+                marker = full_row.get(DISPLAY_COLUMNS_V4['marker'], '')
+                reasoning = full_row.get(DISPLAY_COLUMNS_V4['reasoning'], '')
+                # Get subject and object directly from full row data
+                subject = full_row.get(DISPLAY_COLUMNS_V4['subject'], '')
+                obj = full_row.get(DISPLAY_COLUMNS_V4['object'], '')
             else:
-                causal_statement = selected_row_data.get(DISPLAY_COLUMNS_V3['causal'], '')
-                original_reference_text = str(selected_row_data.get(DISPLAY_COLUMNS_V3['original reference'], '')).strip()
+                causal_statement = full_row.get(DISPLAY_COLUMNS_V3['causal'], '')
+                original_reference_text = str(full_row.get(DISPLAY_COLUMNS_V3['original reference'], '')).strip()
+                pattern_type = full_row.get(DISPLAY_COLUMNS_V3['pattern'], '')
+                sentence_type = full_row.get(DISPLAY_COLUMNS_V3['causal type'], '')
+                marked_type = ''
+                explicit_type = ''
+                marker = ''
+                subject = ''
+                obj = full_row.get(DISPLAY_COLUMNS_V3['Named entity/Object in causal'], '')
+                reasoning = full_row.get(DISPLAY_COLUMNS_V3['note'], '')
             
-            st.subheader("Selected Item Details and Comparison")
-            st.markdown(f"**Extracted:** *{causal_statement}*")
-            st.markdown(f"**Current Saved Score:** `{selected_row_data['Score'] or 'None'}`")
-            st.markdown("---")
+            # Side-by-side layout: Details on the left, Source Text on the right
+            details_col, source_col = st.columns(2)
             
-            st.markdown("### Source Text Comparison")
-
-            if df_reference_input is not None and len(df_reference_input) > 0:
-                raw_text = original_reference_text
+            with details_col:
+                st.subheader("📝 Selected Item Details")
                 
-                highlight_style = 'background-color: #981ca3; font-weight: bold; color: white; padding: 2px; border-radius: 2px;' 
-                best_csv_match = None
+                # Display all types in a clear grid layout
+                st.markdown("##### 📋 Classification Types")
+                type_col1, type_col2 = st.columns(2)
+                with type_col1:
+                    st.metric("Pattern Type", pattern_type or "—")
+                    st.metric("Marked Type", marked_type or "—")
+                with type_col2:
+                    st.metric("Sentence Type", sentence_type or "—")
+                    st.metric("Explicit Type", explicit_type or "—")
                 
-                for csv_input in df_reference_input['input'].tolist():
-                    if raw_text.lower() in csv_input.lower():
-                        best_csv_match = csv_input
-                        break
-                
-                if best_csv_match:
-                    styled_segment = f"<span style='{highlight_style}'>{raw_text}</span>"
-                    final = best_csv_match.replace(raw_text, styled_segment, 1)
-                    
-                    st.markdown("**CSV Input (Source Document)**")
-                    st.markdown(final, unsafe_allow_html=True)
+                # Display marker prominently
+                st.markdown("##### 🏷️ Marker")
+                if marker:
+                    st.info(f"**\"{marker}\"**")
                 else:
-                    st.warning("Original snippet not found inside CSV input text.")
-                    st.markdown(raw_text)
-            else:
-                st.warning("No CSV Loaded.")
+                    st.caption("_No marker (unmarked causal relationship)_")
+                
+                # Display subject and object with bigger text
+                st.markdown("##### 🔗 Causal Relationship")
+                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['subject']}:</strong> <span style='color:#28a745; font-size:20px;'>{subject or '—'}</span></p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['object']}:</strong> <span style='color:#dc3545; font-size:20px;'>{obj or '—'}</span></p>", unsafe_allow_html=True)
+                st.markdown(f"**Full Relationship:** *{causal_statement}*")
+                
+                # Reasoning
+                if reasoning:
+                    st.markdown("##### 💡 Reasoning")
+                    st.caption(reasoning)
+                
+                st.markdown(f"**Current Saved Score:** `{current_score or 'None'}`")
+                if current_notes:
+                    st.markdown(f"**Saved Notes:** {current_notes}")
+            
+            with source_col:
+                st.subheader("📄 Source Text Comparison")
+
+                if df_reference_input is not None and len(df_reference_input) > 0:
+                    raw_text = original_reference_text
+                    
+                    highlight_style = 'background-color: #981ca3; font-weight: bold; color: white; padding: 2px; border-radius: 2px;' 
+                    best_csv_match = None
+                    
+                    for csv_input in df_reference_input['input'].tolist():
+                        if raw_text.lower() in csv_input.lower():
+                            best_csv_match = csv_input
+                            break
+                    
+                    if best_csv_match:
+                        styled_segment = f"<span style='{highlight_style}'>{raw_text}</span>"
+                        final = best_csv_match.replace(raw_text, styled_segment, 1)
+                        
+                        st.markdown("**CSV Input (Source Document)**")
+                        st.markdown(final, unsafe_allow_html=True)
+                    else:
+                        st.warning("Original snippet not found inside CSV input text.")
+                        st.markdown(f"**Source Text:** {raw_text}")
+                else:
+                    st.warning("No CSV Loaded.")
+                    st.markdown(f"**Source Text:** {original_reference_text}")
 
     else:
         st.info("Select a row above to view details.")
