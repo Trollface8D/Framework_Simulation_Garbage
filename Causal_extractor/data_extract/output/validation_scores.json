@@ -1,0 +1,36 @@
+{
+    "response_v4_9.json": {
+        "0": {
+            "score": "5",
+            "notes": ""
+        },
+        "1": {
+            "score": "5",
+            "notes": ""
+        },
+        "2": {
+            "score": "4",
+            "notes": "unmarked, when"
+        },
+        "3": {
+            "score": "5",
+            "notes": ""
+        },
+        "4": {
+            "score": "5",
+            "notes": ""
+        },
+        "5": {
+            "score": "4",
+            "notes": "the \"challenge\" can be found in \"event that causes an unusual amount of trash\", but the input is unclear"
+        },
+        "6": {
+            "score": "4",
+            "notes": "marked \"also\""
+        },
+        "7": {
+            "score": "2",
+            "notes": "Wrong NER extraction, should given the \"economic feasibility\" instead, problem in passive sentence extraction"
+        }
+    }
+}

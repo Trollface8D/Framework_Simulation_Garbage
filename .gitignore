@@ -1,5 +1,9 @@
 *.pyc
 .env
 models/
-output/
+
+# Ignore output directories but allow validation_scores.json
+output/*
+!output/validation_scores.json
+**/output/*
 !**/output/validation_scores.json
