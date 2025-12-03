@@ -2,3 +2,4 @@
 .env
 models/
 output/
+!**/output/validation_scores.json
