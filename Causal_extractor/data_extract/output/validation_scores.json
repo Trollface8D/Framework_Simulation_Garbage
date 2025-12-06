@@ -1,75 +1,129 @@
 {
     "response_v4_9.json": {
         "0": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "1": {
-            "score": "5",
+            "semantic_fidelity": "3",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "2",
             "notes": ""
         },
         "2": {
-            "score": "4",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": "unmarked, when"
         },
         "3": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "4": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "5": {
-            "score": "4",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "4",
             "notes": "the \"challenge\" can be found in \"event that causes an unusual amount of trash\", but the input is unclear"
         },
         "6": {
-            "score": "4",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": "marked \"also\""
         },
         "7": {
-            "score": "2",
-            "notes": "Wrong NER extraction, should given the \"economic feasibility\" instead, problem in passive sentence extraction"
+            "semantic_fidelity": "1",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "1",
+            "notes": "Wrong NER extraction, should given the \"economic feasibility\" instead, problem in passive sentence extraction, EA is correct but the senmatic is very wrong however, it know that this entire sentence is the opimization target\n"
         },
         "8": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "9": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "10": {
-            "score": "1",
-            "notes": "unrelated, causal contain entire sentences"
+            "semantic_fidelity": "1",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "3",
+            "notes": "causal contain entire sentences, accurate SA prediction, the structural is corrected but using pronoun and missing the \"We\" as the project contributor."
         },
         "11": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": "super good extraction, add sentimantic value while keeping \"I\" tag when compomise"
         },
         "12": {
-            "score": "2",
+            "semantic_fidelity": "1",
+            "schema_accuracy": "3",
+            "explicit_accuracy": "3",
+            "structural_integrity": "1",
             "notes": "should link with \"สร้างที่พักขยะ\", missing sentimatic meaning"
         },
         "13": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "14": {
-            "score": "5",
-            "notes": ""
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
+            "notes": "LLM can understand text in the custom format which they improvise in causal structure and keep senmantic perfectly while mark this as \"I\" to indicate that this causal have to be improvised"
         },
         "15": {
-            "score": "5",
-            "notes": ""
+            "semantic_fidelity": "5",
+            "schema_accuracy": "",
+            "explicit_accuracy": "",
+            "structural_integrity": "",
+            "notes": "LLM can understand text in the custom format which they improvise in causal structure and keep senmantic perfectly while mark this as \"I\" to indicate that this causal have to be improvised"
         },
         "16": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         },
         "17": {
-            "score": "5",
+            "semantic_fidelity": "5",
+            "schema_accuracy": "5",
+            "explicit_accuracy": "5",
+            "structural_integrity": "5",
             "notes": ""
         }
     }

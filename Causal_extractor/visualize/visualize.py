@@ -4,9 +4,13 @@ import json
 import os
 import re
 
+# Get the script's directory to build absolute paths
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # Go up to Framework_Simulation_Garbage
+
 # Define the base directories (use data_extract output and generation_log as requested)
-BASE_DIR = os.path.join("Causal_extractor", "data_extract", "output")
-REFERENCE_DIR = os.path.join("Causal_extractor", "data_extract")
+BASE_DIR = os.path.join(PROJECT_ROOT, "Causal_extractor", "data_extract", "output")
+REFERENCE_DIR = os.path.join(PROJECT_ROOT, "Causal_extractor", "data_extract")
 
 # --- NEW: Define the score storage path (inside the base directory) ---
 SCORE_FILE_NAME = "validation_scores.json"
@@ -71,20 +75,34 @@ def save_scores(scores):
         st.error(f"Error saving: {e}")
 
 def get_score_and_notes(all_scores, file_name, unique_id):
-    """Get score and notes for a specific row. Handles both old format (string) and new format (dict)."""
+    """Get scores and notes for a specific row. Handles old format and new 4-matrix format."""
     file_scores = all_scores.get(file_name, {})
     entry = file_scores.get(str(unique_id), {})
     # Handle old format where entry was just a score string
     if isinstance(entry, str):
-        return entry, ""
-    # New format: {"score": "...", "notes": "..."}
-    return entry.get("score", ""), entry.get("notes", "")
+        return {"semantic_fidelity": entry, "schema_accuracy": "", "explicit_accuracy": "", "structural_integrity": ""}, ""
+    # Handle old format with single "score" key
+    if "score" in entry and "semantic_fidelity" not in entry:
+        return {"semantic_fidelity": entry.get("score", ""), "schema_accuracy": "", "explicit_accuracy": "", "structural_integrity": ""}, entry.get("notes", "")
+    # New format: {"semantic_fidelity": "...", "schema_accuracy": "...", "explicit_accuracy": "...", "structural_integrity": "...", "notes": "..."}
+    return {
+        "semantic_fidelity": entry.get("semantic_fidelity", ""),
+        "schema_accuracy": entry.get("schema_accuracy", ""),
+        "explicit_accuracy": entry.get("explicit_accuracy", ""),
+        "structural_integrity": entry.get("structural_integrity", "")
+    }, entry.get("notes", "")
+
+def get_scores_file_mtime():
+    """Get modification time of scores file for cache invalidation."""
+    if os.path.exists(SCORE_FILE_PATH):
+        return os.path.getmtime(SCORE_FILE_PATH)
+    return 0
 
 # ------------------------------------------------------------------
 # 1. JSON Data Loading (Main Data) - MODIFIED to include scores
 # ------------------------------------------------------------------
 @st.cache_data(hash_funcs={dict: lambda x: json.dumps(x, sort_keys=True)})
-def load_json_data(file_path, selected_file_name):
+def load_json_data(file_path, selected_file_name, scores_mtime=None):
     """Load JSON data from file, auto-detect V3 or V4 schema, return DataFrame with all columns."""
     if not os.path.exists(file_path):
         st.error(f"File not found at: {file_path}")
@@ -141,30 +159,39 @@ def load_json_data(file_path, selected_file_name):
 
         # Empty list case
         elif isinstance(raw_data, list) and not raw_data:
-            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["SF", "SA", "EA", "SI", "Notes"]), "v4"
 
         else:
             st.error("Unsupported JSON format: expected list-of-lists or list-of-dicts.")
-            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
+            return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["SF", "SA", "EA", "SI", "Notes"]), "v4"
 
         # Add Unique_ID and populate Score/Notes from saved data (if any)
         df.insert(0, 'Unique_ID', df.index)
-        df['Score'] = ""
+        df['SF'] = ""  # Semantic Fidelity
+        df['SA'] = ""  # Schema Accuracy (Causal, Sentence, Marked Type)
+        df['EA'] = ""  # Explicit Accuracy
+        df['SI'] = ""  # Structural Integrity
         df['Notes'] = ""
 
         all_scores = load_scores()
 
         def populate_score_notes(row):
-            score, notes = get_score_and_notes(all_scores, selected_file_name, row['Unique_ID'])
-            return pd.Series({'Score': score, 'Notes': notes})
+            scores, notes = get_score_and_notes(all_scores, selected_file_name, row['Unique_ID'])
+            return pd.Series({
+                'SF': scores['semantic_fidelity'], 
+                'SA': scores['schema_accuracy'],
+                'EA': scores['explicit_accuracy'],
+                'SI': scores['structural_integrity'], 
+                'Notes': notes
+            })
 
-        df[['Score', 'Notes']] = df.apply(populate_score_notes, axis=1)
+        df[['SF', 'SA', 'EA', 'SI', 'Notes']] = df.apply(populate_score_notes, axis=1)
 
         return df, schema_version
 
     except Exception as e:
         st.error(f"Error reading: {e}")
-        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["Score", "Notes"]), "v4"
+        return pd.DataFrame(columns=list(DISPLAY_COLUMNS_V4.values()) + ["SF", "SA", "EA", "SI", "Notes"]), "v4"
 
 # ------------------------------------------------------------------
 # 2. CSV Reference Input Loading
@@ -264,7 +291,8 @@ if json_files:
     
     if selected_file_name:
         full_path = os.path.join(BASE_DIR, selected_file_name)
-        df, schema_version = load_json_data(full_path, selected_file_name)
+        # Pass scores file mtime to invalidate cache when scores change
+        df, schema_version = load_json_data(full_path, selected_file_name, scores_mtime=get_scores_file_mtime())
         st.caption(f"Detected schema: **{schema_version.upper()}**")
 else:
     st.info("No JSON files found.")
@@ -339,7 +367,7 @@ if not df.empty:
             DISPLAY_COLUMNS_V4['marked_type'],
             DISPLAY_COLUMNS_V4['explicit_type'],
             DISPLAY_COLUMNS_V4['relationship'],
-            'Score',
+            'SF', 'SA', 'EA', 'SI',  # Semantic Fidelity, Schema Accuracy, Explicit Accuracy, Structural Integrity
             DISPLAY_COLUMNS_V4['source_text']
         ]
     else:
@@ -348,7 +376,7 @@ if not df.empty:
             DISPLAY_COLUMNS_V3['pattern'],
             DISPLAY_COLUMNS_V3['causal type'],
             DISPLAY_COLUMNS_V3['causal'],
-            'Score',
+            'SF', 'SA', 'EA', 'SI',
             DISPLAY_COLUMNS_V3['original reference']
         ]
     # Filter to only include columns that exist in df
@@ -366,7 +394,7 @@ if not df.empty:
         st.session_state.current_selected_index = st.session_state.auto_select_index
         st.session_state.auto_select_index = None  # Clear the trigger
     
-    # Apply the current selection
+    # Apply the current selection from session state
     if st.session_state.current_selected_index is not None:
         idx = st.session_state.current_selected_index
         if idx < len(df_selection_view):
@@ -377,10 +405,10 @@ if not df.empty:
         use_container_width=True, 
         column_config={
             "Select": st.column_config.CheckboxColumn("Select"),
-            "Score": st.column_config.SelectboxColumn(
-                "Score",
-                options=["", "1", "2", "3", "4", "5"]
-            ),
+            "SF": st.column_config.TextColumn("SF", help="Semantic Fidelity"),
+            "SA": st.column_config.TextColumn("SA", help="Schema Accuracy (Causal, Sentence, Marked)"),
+            "EA": st.column_config.TextColumn("EA", help="Explicit Type Accuracy"),
+            "SI": st.column_config.TextColumn("SI", help="Structural Integrity"),
         },
         key="detail_view_editor"
     )
@@ -394,11 +422,26 @@ if not df.empty:
     selected_rows = edited_df_with_id[edited_df_with_id['Select'] == True]
     
     # Update session state based on user's manual selection in data_editor
+    # Only update if user actually changed the selection (not on initial load)
     if len(selected_rows) == 1:
         new_selected_idx = selected_rows.iloc[0]['original_index']
-        st.session_state.current_selected_index = new_selected_idx
-    elif len(selected_rows) == 0:
+        # Always update to the newly selected row
+        if st.session_state.current_selected_index != new_selected_idx:
+            st.session_state.current_selected_index = new_selected_idx
+            st.rerun()  # Rerun to apply the selection immediately
+        else:
+            st.session_state.current_selected_index = new_selected_idx
+    elif len(selected_rows) == 0 and st.session_state.current_selected_index is not None:
+        # User explicitly deselected
         st.session_state.current_selected_index = None
+    elif len(selected_rows) > 1:
+        # Multiple selections - keep the newest one (last clicked)
+        # Find which one is new by comparing with current
+        for _, row in selected_rows.iterrows():
+            if row['original_index'] != st.session_state.current_selected_index:
+                st.session_state.current_selected_index = row['original_index']
+                st.rerun()
+                break
     
     if len(selected_rows) >= 1:
         # ---------------------------
@@ -408,54 +451,9 @@ if not df.empty:
             selected_row_data = selected_rows.iloc[0]
             selected_unique_id = str(selected_row_data['Unique_ID'])
             
-            # Get current score and notes
+            # Get current scores and notes
             all_scores = load_scores()
-            current_score, current_notes = get_score_and_notes(all_scores, selected_file_name, selected_unique_id)
-
-            st.write("### ✍️ Edit Score & Notes")
-            
-            score_col, notes_col = st.columns([1, 2])
-            
-            with score_col:
-                inline_value = st.radio(
-                    "Score:",
-                    options=["1", "2", "3", "4", "5"],
-                    index=["1", "2", "3", "4", "5"].index(current_score) if current_score in ["1", "2", "3", "4", "5"] else 0,
-                    horizontal=True,
-                    key=f"inline_{selected_unique_id}"
-                )
-            
-            with notes_col:
-                inline_notes = st.text_area(
-                    "Notes:",
-                    value=current_notes,
-                    height=100,
-                    placeholder="Add your notes here...",
-                    key=f"notes_{selected_unique_id}"
-                )
-
-            if st.button("💾 Save Score & Notes", type="primary"):
-                all_scores = load_scores()
-                file_scores = all_scores.get(selected_file_name, {})
-                file_scores[selected_unique_id] = {
-                    "score": inline_value.strip(),
-                    "notes": inline_notes.strip()
-                }
-                all_scores[selected_file_name] = file_scores
-                save_scores(all_scores)
-                
-                # Find current row index and set next row to be auto-selected
-                current_idx = selected_row_data['original_index']
-                next_idx = current_idx + 1
-                if next_idx < len(df_filtered):
-                    st.session_state.auto_select_index = next_idx
-                else:
-                    st.session_state.auto_select_index = None  # No more rows
-                
-                st.cache_data.clear()
-                st.rerun()
-
-            st.markdown("---")
+            current_scores, current_notes = get_score_and_notes(all_scores, selected_file_name, selected_unique_id)
 
             # ---------------------------
             # Comparison Display
@@ -514,6 +512,14 @@ if not df.empty:
                 
                 st.subheader("📝 Selected Item Details")
                 
+                # Full Relationship at the top with bigger text
+                st.markdown("##### 🔗 Full Relationship")
+                st.markdown(f"<p style='font-size:20px; line-height:1.6;'><em>{causal_statement}</em></p>", unsafe_allow_html=True)
+                
+                # Display subject and object with bigger text
+                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['subject']}:</strong> <span style='color:#28a745; font-size:20px;'>{subject or '—'}</span></p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['object']}:</strong> <span style='color:#dc3545; font-size:20px;'>{obj or '—'}</span></p>", unsafe_allow_html=True)
+                
                 # Display all types in a clear grid layout
                 st.markdown("##### 📋 Classification Types")
                 type_col1, type_col2 = st.columns(2)
@@ -531,18 +537,14 @@ if not df.empty:
                 else:
                     st.caption("_No marker (unmarked causal relationship)_")
                 
-                # Display subject and object with bigger text
-                st.markdown("##### 🔗 Causal Relationship")
-                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['subject']}:</strong> <span style='color:#28a745; font-size:20px;'>{subject or '—'}</span></p>", unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size:18px;'><strong>{DISPLAY_COLUMNS_V4['object']}:</strong> <span style='color:#dc3545; font-size:20px;'>{obj or '—'}</span></p>", unsafe_allow_html=True)
-                st.markdown(f"**Full Relationship:** *{causal_statement}*")
-                
                 # Reasoning
                 if reasoning:
                     st.markdown("##### 💡 Reasoning")
                     st.caption(reasoning)
                 
-                st.markdown(f"**Current Saved Score:** `{current_score or 'None'}`")
+                # Show saved scores summary
+                saved_scores_display = f"SF: `{current_scores['semantic_fidelity'] or '-'}` | SA: `{current_scores['schema_accuracy'] or '-'}` | EA: `{current_scores['explicit_accuracy'] or '-'}` | SI: `{current_scores['structural_integrity'] or '-'}`"
+                st.markdown(f"**Saved Scores:** {saved_scores_display}")
                 if current_notes:
                     st.markdown(f"**Saved Notes:** {current_notes}")
             
@@ -602,6 +604,135 @@ if not df.empty:
                 else:
                     st.warning("No CSV Loaded.")
                     st.markdown(f"**Source Text:** {original_reference_text}")
+
+        # ---------------------------
+        # ✍️ Evaluation Scores (at the bottom)
+        # ---------------------------
+        st.markdown("---")
+        st.subheader("✍️ Evaluation Scores")
+        
+        # 2x2 Grid for 4 scoring matrices
+        score_row1_col1, score_row1_col2 = st.columns(2)
+        score_row2_col1, score_row2_col2 = st.columns(2)
+        
+        # 1. Semantic Fidelity (SF)
+        with score_row1_col1:
+            st.markdown("##### 🎯 Semantic Fidelity (SF)")
+            with st.expander("📖 Criteria Guide", expanded=False):
+                st.markdown("""
+**5 - Excellent:** The causal statement completely and accurately captures the meaning from the source text with no distortion or loss.
+
+**4 - Good:** The causal statement captures the meaning well, but may have minor phrasing differences that don't change the core meaning.
+
+**3 - Moderate:** The causal statement generally captures the meaning, but some nuance is lost or slightly altered.
+
+**2 - Below Average:** The causal statement captures some meaning, but has notable distortions or missing elements.
+
+**1 - Poor:** The causal statement significantly misrepresents or fails to capture the meaning from the source.
+""")
+            semantic_score = st.radio(
+                "Rate Semantic Fidelity (1-5):",
+                options=["—", "1", "2", "3", "4", "5"],
+                horizontal=True,
+                key=f"semantic_{selected_unique_id}",
+                index=["—", "1", "2", "3", "4", "5"].index(current_scores['semantic_fidelity']) if current_scores['semantic_fidelity'] in ["1", "2", "3", "4", "5"] else 0
+            )
+        
+        # 2. Schema Classification Accuracy (SA)
+        with score_row1_col2:
+            st.markdown("##### 📊 Schema Classification Accuracy (SA)")
+            with st.expander("📖 Criteria Guide", expanded=False):
+                st.markdown("""
+**5 - Excellent:** Causal Type, Sentence Type, and Marked Type are all correctly classified.
+
+**4 - Good:** Two out of three types are correctly classified; the third has a minor error.
+
+**3 - Moderate:** One major type (e.g., Causal Type) is incorrect, or two types have minor errors.
+
+**2 - Below Average:** Multiple types are incorrectly classified.
+
+**1 - Poor:** All or nearly all type classifications are incorrect.
+""")
+            schema_score = st.radio(
+                "Rate Schema Accuracy (1-5):",
+                options=["—", "1", "2", "3", "4", "5"],
+                horizontal=True,
+                key=f"schema_{selected_unique_id}",
+                index=["—", "1", "2", "3", "4", "5"].index(current_scores['schema_accuracy']) if current_scores['schema_accuracy'] in ["1", "2", "3", "4", "5"] else 0
+            )
+        
+        # 3. Explicit Type Accuracy (EA)
+        with score_row2_col1:
+            st.markdown("##### 🔍 Explicit Type Accuracy (EA)")
+            with st.expander("📖 Criteria Guide", expanded=False):
+                st.markdown("""
+**5 - Excellent:** Explicit Type classification is correct, matching the presence of a clear causal marker (e.g., "because," "therefore").
+
+**4 - Good:** Classification is correct, but the marker choice or reasoning is slightly ambiguous.
+
+**3 - Moderate:** Classification is borderline correct, with room for interpretation (e.g., implicit causality misidentified as explicit).
+
+**2 - Below Average:** Classification is incorrect but understandable given context.
+
+**1 - Poor:** Classification is clearly wrong (e.g., explicit marked as implicit or vice versa).
+""")
+            explicit_score = st.radio(
+                "Rate Explicit Type Accuracy (1-5):",
+                options=["—", "1", "2", "3", "4", "5"],
+                horizontal=True,
+                key=f"explicit_{selected_unique_id}",
+                index=["—", "1", "2", "3", "4", "5"].index(current_scores['explicit_accuracy']) if current_scores['explicit_accuracy'] in ["1", "2", "3", "4", "5"] else 0
+            )
+        
+        # 4. Structural Integrity (SI)
+        with score_row2_col2:
+            st.markdown("##### 🔗 Structural Integrity (SI)")
+            with st.expander("📖 Criteria Guide", expanded=False):
+                st.markdown("""
+**5 - Excellent:** Subject and Object are correctly identified with appropriate cause-to-effect directionality.
+
+**4 - Good:** Subject and Object are mostly correct; minor boundary or phrasing issues.
+
+**3 - Moderate:** One element (Subject or Object) is incorrect or direction is partially off.
+
+**2 - Below Average:** Significant errors in structure (e.g., roles swapped or incomplete).
+
+**1 - Poor:** Subject/Object are entirely wrong, or cause-effect directionality is reversed.
+""")
+            structural_score = st.radio(
+                "Rate Structural Integrity (1-5):",
+                options=["—", "1", "2", "3", "4", "5"],
+                horizontal=True,
+                key=f"structural_{selected_unique_id}",
+                index=["—", "1", "2", "3", "4", "5"].index(current_scores['structural_integrity']) if current_scores['structural_integrity'] in ["1", "2", "3", "4", "5"] else 0
+            )
+        
+        # Notes
+        notes = st.text_area("📝 Notes (optional):", value=current_notes, height=80, key=f"notes_{selected_unique_id}")
+        
+        # Save button
+        if st.button("💾 Save Score & Notes", type="primary", key=f"save_{selected_unique_id}"):
+            all_scores = load_scores()
+            
+            if selected_file_name not in all_scores:
+                all_scores[selected_file_name] = {}
+            
+            all_scores[selected_file_name][selected_unique_id] = {
+                "semantic_fidelity": semantic_score if semantic_score != "—" else "",
+                "schema_accuracy": schema_score if schema_score != "—" else "",
+                "explicit_accuracy": explicit_score if explicit_score != "—" else "",
+                "structural_integrity": structural_score if structural_score != "—" else "",
+                "notes": notes
+            }
+            
+            save_scores(all_scores)
+            st.success(f"Saved scores for Unique_ID: {selected_unique_id}")
+            
+            # Auto-select next row
+            current_idx = selected_row_data['original_index']
+            if current_idx < len(df_filtered) - 1:
+                st.session_state.auto_select_index = current_idx + 1
+                st.rerun()
 
     else:
         st.info("Select a row above to view details.")
